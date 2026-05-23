@@ -26,8 +26,8 @@
 ### Top level
 {%- endif %}
 
-{% for m in ns_macros -%}
-- [`{{ m.fq_name }}{% if m.has_overloads %}/{{ m.arity }}{% endif %}`]({{ m.link }}){% if m.doc and m.doc.description %} — {{ m.short_desc }}{% endif %}
+{% for m in ns_macros %}
+- [`{{ m.fq_name }}{{ '/' ~ m.arity if m.has_overloads else '' }}`]({{ m.link }}){{ ' — ' ~ m.short_desc if (m.doc and m.doc.description) else '' }}
 {% endfor %}
 
 {% endfor -%}
