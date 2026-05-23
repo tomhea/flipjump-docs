@@ -68,10 +68,12 @@ exclude_patterns: list[str] = [
 
 html_theme = "furo"
 html_title = "FlipJump"
-html_static_path = ["_static"]
+# No `html_static_path` for now — we have no custom CSS or JS to ship.
+# Furo provides its own theme assets. If you ever add a custom.css,
+# put it in docs/source/_static/ and re-add `html_static_path = ["_static"]`.
+#
 # `_extra/` ships verbatim to the deploy root (sibling of /index.html).
-# Used for robots.txt — separated from `_static/` so the file doesn't
-# double-copy into `_static/` AND the root.
+# Used for robots.txt.
 html_extra_path = ["_extra"]
 
 # Furo theme options: a permanent "Try the IDE" button in the top
