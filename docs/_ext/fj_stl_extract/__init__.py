@@ -14,7 +14,6 @@ exists. At M3 importing this module is the only public API.
 
 from __future__ import annotations
 
-# Public re-exports populated as modules are built across the milestones.
-# At M3 only the tokenizer + parser + pipeline live here; the Sphinx
-# extension hook (`def setup(app):`) lands in M4 with the renderer.
-__all__: list[str] = []
+from .sphinx_ext import setup
+
+__all__ = ["setup"]

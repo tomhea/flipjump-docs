@@ -1,20 +1,37 @@
 """Sphinx configuration for fjdocs.tomhe.app.
 
-Minimal at M1: Furo theme + MyST Markdown parser only.
-Extensions for the STL extractor, custom Pygments lexer, sitemap, and
-not-found page land in later milestones (see plan v0.4, v0.5, v0.9).
+M4: adds the `fj_stl_extract` extension which parses every .fj file
+under vendor/flip-jump/flipjump/stl/ and renders per-file + per-macro
+Markdown pages into stl/_generated/ on every build.
 """
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Put our extension package on sys.path so `extensions = ["fj_stl_extract"]`
+# can find it. The package lives outside source/ to keep the Sphinx
+# source tree clean.
+_EXT_DIR = (Path(__file__).resolve().parent.parent / "_ext")
+if str(_EXT_DIR) not in sys.path:
+    sys.path.insert(0, str(_EXT_DIR))
+
 project = "FlipJump"
 author = "Tom Herman"
 copyright = "2026, Tom Herman"  # noqa: A001 — shadows Sphinx config slot
-release = "0.1"
+release = "0.4"
 
 extensions = [
     "myst_parser",
+    "fj_stl_extract",
 ]
+
+# Path resolution: from docs/source/conf.py, the flip-jump submodule
+# sits at ../../vendor/flip-jump/flipjump/stl. This is the default in
+# the extension; declared here for visibility.
+fj_stl_root = "../../vendor/flip-jump/flipjump/stl"
+fj_stl_output = "stl/_generated"
 
 myst_enable_extensions = [
     "colon_fence",

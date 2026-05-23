@@ -13,3 +13,10 @@ While these docs are being built, see:
 - The [GitHub repository](https://github.com/tomhea/flip-jump) for the language implementation, examples, and tests
 - The [esolangs wiki entry](https://esolangs.org/wiki/FlipJump) for an overview
 - The [FlipJump IDE](https://fj.tomhe.app) for an in-browser editor + compiler + runtime
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+stl/index
+```
