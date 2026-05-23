@@ -18,6 +18,7 @@ While these docs are being built, see:
 :maxdepth: 2
 :hidden:
 
+getting-started/index
 language/index
 stl/index
 ```

@@ -38,7 +38,7 @@ User code rarely touches the IO opcode directly. The STL provides:
 - Bit-level input/output: [`bit/input.fj`](../stl/_generated/file--bit-input.md) and [`bit/output.fj`](../stl/_generated/file--bit-output.md).
 - Hex-level input/output: [`hex/input.fj`](../stl/_generated/file--hex-input.md) and [`hex/output.fj`](../stl/_generated/file--hex-output.md).
 
-A complete "Hello, World!" program is just `stl.startup_and_init_all` + `stl.output "Hello\n"` + `stl.loop`. (A guided walkthrough lands in M7.)
+A complete "Hello, World!" program is just `stl.startup_and_init_all` + `stl.output "Hello\n"` + `stl.loop`. See the [Hello World walkthrough](../getting-started/hello-world.md) for a guided tour.
 
 ## Reference
 
