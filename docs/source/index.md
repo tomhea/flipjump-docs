@@ -35,6 +35,13 @@ The single instruction, expression syntax, macros, namespaces, I/O.
 Auto-generated reference for every macro in `flipjump/stl/`.
 :::
 
+:::{grid-item-card} 📝 Examples
+:link: examples/index
+:link-type: doc
+
+Hello World, prime sieve, calculator, quine — annotated.
+:::
+
 :::{grid-item-card} 🛠️ Companion tools
 :link: tools/index
 :link-type: doc
@@ -56,5 +63,6 @@ The browser IDE, c2fj (C compiler), bf2fj (Brainfuck compiler).
 getting-started/index
 language/index
 stl/index
+examples/index
 tools/index
 ```
