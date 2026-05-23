@@ -110,6 +110,37 @@ ns bit { def helper {} }
     assert "stl.loop" in page and "bit.helper" in page
 
 
+def test_file_page_renders_each_macro_on_its_own_bullet_line(tmp_path):
+    """Regression: an earlier template used inline `{% if %}...{% endif %}`
+    at end-of-line. With Jinja's `trim_blocks=True`, the newline after
+    `{% endif %}` got stripped, so EVERY macro bullet concatenated into
+    one physical line. Markdown then rendered the whole list as a
+    single bullet with the rest as inline run-on text."""
+    src = """\
+ns bit {
+    // first macro
+    def inc1 dst, carry {}
+    // second macro
+    def add1 dst, src, carry {}
+    // third macro
+    def sub dst, src {}
+}
+"""
+    render_stl(_mini_index(src), tmp_path)
+    page = (tmp_path / "file--fixture.md").read_text(encoding="utf-8")
+    # The Macros section MUST have each bullet on its own line. Count
+    # the lines that start with `- [` — should equal the number of
+    # macros (3). If newlines were eaten, there would be only 1.
+    bullet_lines = [
+        line for line in page.splitlines()
+        if line.lstrip().startswith("- [`")
+    ]
+    assert len(bullet_lines) == 3, (
+        f"Expected 3 bullet lines for 3 macros, got {len(bullet_lines)}.\n"
+        f"Rendered page:\n{page}"
+    )
+
+
 def test_constants_appear_in_file_page(tmp_path):
     src = """\
 // the word size doubled
