@@ -14,7 +14,7 @@ pip install bf2fj
 
 ```sh
 bf2fj hello_world.bf            # generate hello_world.fj
-bf2fj -r hello_world.bf         # generate AND immediately run
+bf2fj hello_world.bf -r         # generate AND immediately run
 ```
 
 `-r` (run) shells out to the local `fj` interpreter — make sure the [main FlipJump toolchain](../getting-started/install.md) is installed too.

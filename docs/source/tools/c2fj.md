@@ -16,7 +16,7 @@ pip install c2fj
 sudo apt install picolibc-riscv64-unknown-elf
 ```
 
-Linux only; Python 3.13+. The `picolibc` package provides the RISC-V C library + cross-compiler.
+Linux only; Python 3.8–3.12 per upstream pyproject.toml. The `picolibc` apt package provides the RISC-V C library + cross-compiler.
 
 ## Run
 
@@ -24,7 +24,7 @@ Linux only; Python 3.13+. The `picolibc` package provides the RISC-V C library +
 python3 c2fj.py file.c
 ```
 
-That produces a `.fjm` binary you can execute with the FlipJump interpreter (see [Install](../getting-started/install.md) for the toolchain).
+That compiles your C source through the full pipeline (C → ELF → `.fj` fragments → `.fjm`) and immediately runs it through the FlipJump interpreter. The intermediate artifacts are written to the build directory (`--build-dir` overrides where).
 
 For multi-file C projects, drive the compilation with a Makefile. The custom linker script must define three symbols: `_stack_end`, `_sdata`, and `__heap_start`.
 
