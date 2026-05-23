@@ -46,7 +46,7 @@ A FlipJump "variable" is a region of program memory that the code reads via self
 - **Bit variables** — defined via `def bit_var @ x { x: .bit }`. One bit per variable; ops are simple but each takes O(1) FlipJump operations.
 - **Hex variables** — defined via `def hex_var @ x { x: .hex }`. Four bits per variable; arithmetic is table-driven and runs in fewer operations per nibble.
 
-Vector forms (`bit.bit.vec n, ...`, `hex.hex.vec n, ...`) allocate `n` consecutive variables for arrays. See [`bit/memory.fj`](../stl/_generated/file--bit-memory.md) and [`hex/memory.fj`](../stl/_generated/file--hex-memory.md).
+Vector forms (`bit.vec n, value`, `hex.vec n, value`) allocate `n` consecutive variables for arrays. Both are defined inside their respective namespaces in [`bit/memory.fj`](../stl/_generated/file--bit-memory.md) and [`hex/memory.fj`](../stl/_generated/file--hex-memory.md), so the call site reads `bit.vec` / `hex.vec` — NOT `bit.bit.vec` or `hex.hex.vec`.
 
 ## Naming patterns
 

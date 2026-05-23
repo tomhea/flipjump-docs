@@ -7,7 +7,7 @@ The smallest useful FlipJump program is three lines.
 Save this as `hello.fj`:
 
 ```fj
-stl.startup_and_init_all
+stl.startup
 stl.output "Hello, World!\n"
 stl.loop
 ```
@@ -15,7 +15,7 @@ stl.loop
 Run it:
 
 ```sh
-fj hello.fj --run
+fj hello.fj
 ```
 
 Output:
@@ -26,15 +26,19 @@ Hello, World!
 
 That's it. No headers, no `main`, no imports — the standard library is implicitly available because the `fj` tool includes it.
 
+```{note}
+`fj hello.fj` both **assembles** and **runs** the program. To assemble only (writing a `.fjm` binary), use `fj -a hello.fj`. To run an already-assembled binary, use `fj -r hello.fjm`.
+```
+
 ## What just happened
 
 Three macro calls, each from the standard library:
 
 ```fj
-stl.startup_and_init_all
+stl.startup
 ```
 
-Initialises everything the STL needs: the `IO` opcode address (see [Input / Output](../language/io.md)), the pointer tables that `bit.pointers.*` uses, the hex lookup tables that `hex.*` uses, and the stack. Every program starts with this (or with a lighter `stl.startup`-family call if you only need a subset).
+Initialises the `IO` opcode address (see [Input / Output](../language/io.md)). This is the lightest startup variant — enough for output-only programs. Heavier variants (`stl.startup_and_init_pointers`, `stl.startup_and_init_all`) also set up pointer tables, hex truth tables, and the stack — needed when you use the `bit.pointers.*` / `hex.*` / stack-based macros. See [Anatomy](anatomy.md#startup-variants).
 
 ```fj
 stl.output "Hello, World!\n"
@@ -54,27 +58,25 @@ Want to skip the local install? Paste the same three lines into the [FlipJump ID
 
 ## Variations
 
-**Echo input back as output:**
+**Print a number in decimal**: notice that the variable `x` is declared as a DATA LABEL *after* `stl.loop`, not inline with the code. FlipJump variables are regions of program memory the code reads via self-modifying jumps — they have to sit outside the executable path.
 
 ```fj
-stl.startup_and_init_all
-
-hex.hex input_buf
-hex.input_hex input_buf
-hex.output input_buf
-
+stl.startup
+bit.print_dec_uint 32, x
 stl.loop
+
+x: bit.vec 32, 12345
 ```
 
-**Print a number in decimal:**
+**Echo a hex digit from stdin**: same pattern — variable below the halt.
 
 ```fj
-stl.startup_and_init_all
-
-bit.bit_vec 32, x, 12345
-bit.print_dec_uint 32, x
-
+stl.startup
+hex.input_hex input_buf
+hex.output input_buf
 stl.loop
+
+input_buf: hex.hex
 ```
 
 (The exact STL macro signatures may change between releases; the auto-generated per-macro pages under [Standard Library](../stl/index.md) always reflect the pinned upstream version.)
