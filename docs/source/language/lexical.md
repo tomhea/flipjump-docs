@@ -13,11 +13,14 @@ There is no `/* ... */` block-comment syntax. (The Monaco tokenizer that ships w
 
 ## Identifiers
 
-An identifier matches `[A-Za-z_][A-Za-z0-9_.]*` — letters, digits, underscores, and dots. The dot enables namespace navigation:
+The assembler distinguishes two identifier forms:
+
+- **Bare**: `[A-Za-z_][A-Za-z0-9_]*` — letters, digits, underscores. No dots.
+- **Dotted**: at least one `.` somewhere in the name. Used for namespace navigation.
 
 ```fj
 my_macro            // a bare identifier
-stl.startup         // a namespace-qualified reference
+stl.startup         // a dotted identifier (namespace-qualified)
 hex.pointers.write_hex
 ```
 

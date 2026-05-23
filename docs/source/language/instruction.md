@@ -30,9 +30,11 @@ The third form (a bare `;`) appears mostly inside macros as a syntactic skeleton
 ## Execution model
 
 - The CPU starts with the instruction pointer at address `0`.
-- Each instruction is two consecutive words: the flip address `a` and the jump address `b`. The instruction occupies bytes `[ip, ip + dw)` where `dw` is the [double-word size](types.md).
+- Each instruction is two consecutive words: the flip address `a` and the jump address `b`. The instruction occupies bits `[ip, ip + dw)` where `dw` is the [double-word size](types.md).
 - After executing `a;b`, the instruction pointer is set to `b`. There is no implicit increment — execution flow is always explicit.
-- The machine halts when it executes an instruction that jumps to itself without flipping anything that matters. The canonical halt is `stl.loop`, which expands to `;$ - dw`.
+- The machine halts when it executes an instruction that jumps to itself (i.e. `b == ip`) AND the flip address `a` is NOT within the instruction's own `[ip, ip + dw)` body. The canonical halt is `stl.loop`, which expands to `;$ - dw` — a self-loop whose flip address (bit `0`) sits outside the instruction body.
+
+Inside `stl.loop`, `$` evaluates to the current write-head position, which after emitting the two-word instruction equals `ip + dw`. So `$ - dw` equals `ip` — a genuine self-loop on the current instruction's first word, not a jump to a predecessor.
 
 ## What gives the language power
 
