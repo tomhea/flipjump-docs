@@ -16,8 +16,8 @@ quine
 | Example | Lines | Demonstrates |
 |---|---:|---|
 | [Hello World](hello-world.md) | 3 | minimal output |
-| [Prime Sieve](prime-sieve.md) | ~150 | algorithm, pointers, decimal I/O |
-| [Calculator](calculator.md) | ~600 | parser, conditionals, error handling |
-| [Quine](quine.md) | ~80 | self-printing programs in a self-modifying language |
+| [Prime Sieve](prime-sieve.md) | 322 | algorithm, pointers, decimal I/O |
+| [Calculator](calculator.md) | 246 | parser, conditionals, error handling |
+| [Quine](quine.md) | 1031 | self-printing FlipJump binary (mostly commentary explaining how it works) |
 
 The upstream repo's [`programs/`](https://github.com/tomhea/flip-jump/tree/main/programs) directory has more — multi-file compilation tests, function-call demos, hex arithmetic stress tests. They double as the test corpus that proves a FlipJump release works.

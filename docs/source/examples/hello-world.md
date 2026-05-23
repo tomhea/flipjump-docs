@@ -4,11 +4,11 @@ The complete program — three lines:
 
 ```fj
 stl.startup
-stl.output "Hello, World!\n"
+stl.output "Hello, World!\n(:"
 stl.loop
 ```
 
-[View on GitHub](https://github.com/tomhea/flip-jump/blob/main/programs/print_tests/hello_world.fj).
+[View on GitHub](https://github.com/tomhea/flip-jump/blob/main/programs/print_tests/hello_world.fj). (The literal smiley `(:` at the end matches the upstream example — feel free to drop it for your own version.)
 
 For a line-by-line walk-through see the [Getting Started tutorial](../getting-started/hello-world.md).
 

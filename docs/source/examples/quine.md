@@ -1,46 +1,35 @@
 # Quine
 
-A quine is a program that prints its own source code. [`programs/quine16.fj`](https://github.com/tomhea/flip-jump/blob/main/programs/quine16.fj) is a 16-bit FlipJump quine.
+A quine is a program that prints itself. [`programs/quine16.fj`](https://github.com/tomhea/flip-jump/blob/main/programs/quine16.fj) is the FlipJump quine — and it's a particularly interesting one because of how the language defines "self".
+
+## What "self" means here
+
+Most quines print their source code. The FlipJump quine prints its compiled **binary** (the `.fjm` file, including the `.fjm` header struct) — verbatim, byte-for-byte. The file's own header comment is explicit:
+
+> "I took the liberty to define a Quine for FlipJump as a binary (fjm) that prints itself (including the header struct)."
+
+Why pick the binary? FlipJump's "source code" is ambiguous: a FlipJump program is fundamentally a stream of `(flip_address, jump_address)` pairs, and that stream can be represented as text, as packed binary, or in many other formats. The binary `.fjm` is the canonical representation that any conforming interpreter accepts, so quining the binary is the most language-invariant choice.
 
 ## Why it's notable
 
-FlipJump is a self-modifying language by design — every variable is implemented by modifying its own jump addresses at runtime. A quine extends this idea to the program text itself: by the time `stl.output` emits the source, the program has effectively reconstructed its own bytes from the layout the assembler chose.
-
-The trick is the same one Lisp / C / Python quines use — a "data table" of the source, and a small piece of code that prints the data then prints itself printing the data. What's distinctive in FlipJump is that "printing yourself" means walking the IP backward over your own instruction stream and emitting each `a;b` pair as bytes.
-
-## Layout sketch
-
-```fj
-stl.startup
-
-// Print the literal data block first.
-print_data data
-
-// Then print the printer.
-print_data printer
-
-// Self-loop halt.
-stl.loop
-
-printer:
-    // the bytes that, when fed to FlipJump's text representation,
-    // reproduce the print_data calls above.
-
-data:
-    // the bytes that, when interpreted as a string, are the source
-    // of `printer` plus its own bytes.
-```
-
-The actual implementation is finicky because of the encoding round-trip — getting the bytes to align so that `data` decodes to the right characters takes careful placement. See the upstream file for the working version.
+FlipJump is self-modifying by design — every variable is implemented by modifying its own jump addresses at runtime. The quine extends that to the whole program: by the time `stl.output` finishes, the program has read its own bytes (from program memory!) and emitted them to stdout. The "data table" of conventional quines is replaced by program memory itself.
 
 ## Try it
 
+The upstream file's header comment shows the exact incantation:
+
 ```sh
-fj programs/quine16.fj > out.fj
-diff programs/quine16.fj out.fj   # the diff should be empty (modulo encoding quirks)
+fj --asm -w 16 quine16.fj -o quine16.fjm    # assemble (16-bit word width is required)
+fj --run -s quine16.fjm > /tmp/output       # run, capture stdout
+diff quine16.fjm /tmp/output                 # should produce NO output if it's truly a quine
+echo "quine!"                                # confirmation
 ```
 
-Or paste into the [IDE](https://fj.tomhe.app) and run.
+The `-w 16` is mandatory: the program is hand-tuned for 16-bit words, so it doesn't work at the default 64-bit width.
+
+## The author
+
+The FlipJump quine is by [Luis Fernando Estrozi](https://github.com/lestrozi). The source file is ~1000 lines, **most of which is comments** explaining the construction — well worth reading for anyone interested in self-reference under unusual computational models.
 
 ## See also
 
