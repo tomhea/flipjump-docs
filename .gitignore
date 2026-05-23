@@ -38,4 +38,7 @@ Thumbs.db
 # Local MCP/agent state artifacts (Claude Code, ruvector, etc.)
 ruvector.db
 *.rvf
+*.rvf.lock
+.claude-flow/
+agentdb*
 
