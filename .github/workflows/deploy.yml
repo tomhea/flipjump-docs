@@ -23,6 +23,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: docs/requirements.txt
 
       - name: Install Sphinx deps
         run: pip install -r docs/requirements.txt
@@ -30,8 +31,11 @@ jobs:
       - name: Build Sphinx site
         run: cd docs && make html
 
+      # SHA-pinned for supply-chain safety: this action has access to
+      # PRIVATE_SSH_KEY. Tag refs (e.g. @v8) can be force-pushed; SHAs
+      # cannot. burnett01/rsync-deployments v8.0.5:
       - name: Deploy to fjdocs.tomhe.app via rsync
-        uses: burnett01/rsync-deployments@7.0.1
+        uses: burnett01/rsync-deployments@66257cad6bfeb2171d3b6bfa6c9a22279dd9c3a1
         with:
           switches: -avzr --delete
           path: docs/_build/html/

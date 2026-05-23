@@ -135,10 +135,17 @@ def test_submodule_bump_uses_remote_update():
 def test_actionlint_passes_locally():
     if shutil.which("actionlint") is None:
         pytest.skip("actionlint not on PATH (CI installs it; local dev optional)")
+    # actionlint takes file paths, not a directory; with no args it
+    # auto-discovers from cwd. Pass the three workflow files explicitly
+    # so the test fails loudly if a new workflow is added without the
+    # corresponding contract test.
+    files = sorted(WORKFLOWS.glob("*.yml"))
+    assert files, f"No workflow files found under {WORKFLOWS}"
     result = subprocess.run(
-        ["actionlint", str(WORKFLOWS)],
+        ["actionlint", *(str(f) for f in files)],
         capture_output=True,
         text=True,
+        cwd=str(REPO_ROOT),
     )
     assert result.returncode == 0, (
         f"actionlint failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"

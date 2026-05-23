@@ -9,8 +9,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      # SHA-pinned (raven-actions/actionlint v2.1.2):
       - name: Run actionlint
-        uses: raven-actions/actionlint@v2
+        uses: raven-actions/actionlint@205b530c5d9fa8f44ae9ed59f341a0db994aa6f8
 
   build-and-test:
     runs-on: ubuntu-24.04
@@ -26,11 +27,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: docs/requirements.txt
 
+      # `-e .[dev]` pulls pytest + pyyaml from pyproject.toml so dev
+      # versions are pinned in one place instead of duplicated here.
       - name: Install deps
         run: |
           pip install -r docs/requirements.txt
-          pip install "pytest>=8,<10" "pyyaml>=6,<7"
+          pip install -e ".[dev]"
 
       - name: Build Sphinx site (-W via Makefile default)
         run: cd docs && make html
