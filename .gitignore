@@ -1,0 +1,35 @@
+# Sphinx build output
+docs/_build/
+docs/source/stl/_generated/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.venv/
+venv/
+env/
+build/
+dist/
+.coverage
+.coverage.*
+htmlcov/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local secrets (never commit)
+.env
+.env.local
+*.pem
+*.key
