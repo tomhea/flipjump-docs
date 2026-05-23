@@ -141,6 +141,48 @@ ns stl {
     assert "macro--stl.caller--0.md" in target_page
 
 
+def test_nullary_macro_in_used_by_has_closed_inline_code(tmp_path):
+    """Regression: when a nullary (arity-0) macro appears in another
+    macro's `used_by` list, its Markdown link must have a closed
+    inline-code span. The previous template put the closing backtick
+    inside an `{% if dep.arity %}` block, so for arity=0 (falsy in
+    Jinja) the backtick was omitted, producing broken Markdown like
+    `` - [`stl.loop](macro--stl.loop--0.md) `` that MyST would not
+    parse as a link.
+    """
+    src = """\
+ns stl {
+    def target {}
+    def caller { stl.target }
+}
+"""
+    render_stl(_mini_index(src), tmp_path)
+    target_page = (tmp_path / "macro--stl.target--0.md").read_text(encoding="utf-8")
+    # The list item must look like: - [`stl.caller`](macro--stl.caller--0.md)
+    # NOT:                          - [`stl.caller](macro--stl.caller--0.md)
+    assert "[`stl.caller`](macro--stl.caller--0.md)" in target_page
+    # And similarly the caller's depends_on:
+    caller_page = (tmp_path / "macro--stl.caller--0.md").read_text(encoding="utf-8")
+    assert "[`stl.target`](macro--stl.target--0.md)" in caller_page
+
+
+def test_overloaded_macro_link_shows_arity_in_text(tmp_path):
+    """When a macro has overloads, the link DISPLAY text should include
+    the /arity disambiguator so readers can tell which overload they're
+    being directed to."""
+    src = """\
+ns stl {
+    def m { x }
+    def m a, b { x }
+    def caller { stl.m 1, 2 }
+}
+"""
+    render_stl(_mini_index(src), tmp_path)
+    caller_page = (tmp_path / "macro--stl.caller--0.md").read_text(encoding="utf-8")
+    # Caller calls m/2; the link text should include the /2.
+    assert "[`stl.m/2`](macro--stl.m--2.md)" in caller_page
+
+
 def test_stale_files_pruned_on_regenerate(tmp_path):
     # First render with two macros.
     src1 = "ns stl { def a {} def b {} }"

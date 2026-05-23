@@ -23,7 +23,7 @@ separators or `/` directory separators.
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import jinja2
@@ -68,10 +68,9 @@ class _MacroLink:
 def render_stl(index: StlIndex, output_dir: str | Path) -> list[Path]:
     """Render `index` to Markdown files under `output_dir`.
 
-    Returns the list of written paths so the Sphinx extension can pass
-    them to the build's mtime cache. Existing stale files (not in the
-    returned list) are removed so a deleted upstream macro's page
-    disappears from the next build.
+    Returns the list of written paths. Existing stale files (not in
+    the returned list) are removed before returning so a deleted
+    upstream macro's page disappears from the next build.
     """
     out = Path(output_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -114,6 +113,7 @@ def render_stl(index: StlIndex, output_dir: str | Path) -> list[Path]:
                 index=index,
                 has_overloads=m.fq_name in overload_keys,
                 macro_by_key=macro_by_key,
+                overload_keys=overload_keys,
             )
             text = macro_tpl.render(**ctx)
             path = out / (macro_slug(m) + ".md")
@@ -150,7 +150,8 @@ def render_stl(index: StlIndex, output_dir: str | Path) -> list[Path]:
 
 def _macro_context(*, macro: MacroNode, file: ExtractedFile, index: StlIndex,
                    has_overloads: bool,
-                   macro_by_key: dict[str, tuple[MacroNode, ExtractedFile]]
+                   macro_by_key: dict[str, tuple[MacroNode, ExtractedFile]],
+                   overload_keys: set[str],
                    ) -> dict:
     doc = file.docs.get(id(macro))
     deps = sorted(index.dep_graph.depends_on.get(macro_key(macro), set())) \
@@ -163,10 +164,10 @@ def _macro_context(*, macro: MacroNode, file: ExtractedFile, index: StlIndex,
         "file_rel": file.rel_path,
         "file_link": file_slug(file.rel_path) + ".md",
         "has_overloads": has_overloads,
-        "depends_on": [_resolve_link(k, macro_by_key) for k in deps
-                       if k in macro_by_key],
-        "used_by": [_resolve_link(k, macro_by_key) for k in users
-                    if k in macro_by_key],
+        "depends_on": [_resolve_link(k, macro_by_key, overload_keys)
+                       for k in deps if k in macro_by_key],
+        "used_by": [_resolve_link(k, macro_by_key, overload_keys)
+                    for k in users if k in macro_by_key],
     }
 
 
@@ -248,21 +249,27 @@ class _FileLinkConst:
         self.doc = doc
 
 
+@dataclass
 class _EmptyDoc:
-    description = ""
-    time_complexity = None
-    space_complexity = None
-    requires: list[str] = []
-    output_params: dict[str, str] = {}
+    """Stand-in for missing DocInfo so templates can blindly access
+    .requires / .output_params without None-checks. Uses default_factory
+    to avoid mutable class-level defaults that would alias across pages.
+    """
+    description: str = ""
+    time_complexity: str | None = None
+    space_complexity: str | None = None
+    requires: list[str] = field(default_factory=list)
+    output_params: dict[str, str] = field(default_factory=dict)
 
 
 def _resolve_link(key: str,
-                  macro_by_key: dict[str, tuple[MacroNode, ExtractedFile]]
+                  macro_by_key: dict[str, tuple[MacroNode, ExtractedFile]],
+                  overload_keys: set[str],
                   ) -> _MacroLink:
     macro, _file = macro_by_key[key]
     return _MacroLink(
         fq_name=macro.fq_name,
         arity=macro.arity,
         link=macro_slug(macro) + ".md",
-        has_overloads=False,
+        has_overloads=macro.fq_name in overload_keys,
     )

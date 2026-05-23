@@ -57,7 +57,7 @@ This macro exposes labels into the caller's scope via `>`:
 ## Depends on
 
 {% for dep in depends_on -%}
-- [`{{ dep.fq_name }}{% if dep.arity %}/{{ dep.arity }}{% endif %}`]({{ dep.link }})
+- [`{{ dep.fq_name }}{% if dep.has_overloads %}/{{ dep.arity }}{% endif %}`]({{ dep.link }})
 {% endfor %}
 {%- endif %}
 
@@ -65,6 +65,6 @@ This macro exposes labels into the caller's scope via `>`:
 ## Used by
 
 {% for user in used_by -%}
-- [`{{ user.fq_name }}{% if user.arity %}/{{ user.arity }}`{% endif %}]({{ user.link }})
+- [`{{ user.fq_name }}{% if user.has_overloads %}/{{ user.arity }}{% endif %}`]({{ user.link }})
 {% endfor %}
 {%- endif %}
