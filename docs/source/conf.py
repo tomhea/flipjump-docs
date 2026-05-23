@@ -69,7 +69,10 @@ exclude_patterns: list[str] = [
 html_theme = "furo"
 html_title = "FlipJump"
 html_static_path = ["_static"]
-html_extra_path = ["_static/robots.txt"]
+# `_extra/` ships verbatim to the deploy root (sibling of /index.html).
+# Used for robots.txt — separated from `_static/` so the file doesn't
+# double-copy into `_static/` AND the root.
+html_extra_path = ["_extra"]
 
 # Furo theme options: a permanent "Try the IDE" button in the top
 # right of every page, plus an Edit-on-GitHub link.
