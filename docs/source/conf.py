@@ -24,6 +24,7 @@ release = "0.4"
 
 extensions = [
     "myst_parser",
+    "sphinx_design",
     "fj_stl_extract",
 ]
 
@@ -55,6 +56,29 @@ exclude_patterns: list[str] = [
 
 html_theme = "furo"
 html_title = "FlipJump"
+
+# Furo theme options: a permanent "Try the IDE" button in the top
+# right of every page, plus an Edit-on-GitHub link.
+html_theme_options = {
+    "source_repository": "https://github.com/tomhea/flipjump-docs/",
+    "source_branch": "main",
+    "source_directory": "docs/source/",
+    "top_of_page_buttons": ["view", "edit"],
+    "footer_icons": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/tomhea/flip-jump",
+            "html": "",
+            "class": "fa-brands fa-github",
+        },
+    ],
+    "announcement": (
+        '🚀 Try FlipJump in your browser: '
+        '<a href="https://fj.tomhe.app" style="color: #e8c47a; '
+        'text-decoration: underline; font-weight: bold;">'
+        'fj.tomhe.app</a>'
+    ),
+}
 
 # Custom Pygments style matching the FlipJump IDE's `fj-dark` theme so
 # code blocks here look identical to code in the editor at fj.tomhe.app.
