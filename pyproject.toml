@@ -14,12 +14,15 @@ dev = [
     "pyyaml>=6,<7",
 ]
 
-# Declare zero Python packages so `pip install -e .` works as an "empty"
-# project at M2. Real Python modules land in M3 (the STL extractor under
-# docs/_ext/); at that point this stub will be replaced by an actual
-# packages config.
+# The STL extractor lives under docs/_ext/ as a Python package. Telling
+# setuptools where to find it makes `pip install -e .` expose it as
+# importable from anywhere (tests, the Sphinx extension hook in conf.py).
 [tool.setuptools]
-py-modules = []
+package-dir = {"" = "docs/_ext"}
+
+[tool.setuptools.packages.find]
+where = ["docs/_ext"]
+include = ["fj_stl_extract*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
