@@ -10,15 +10,13 @@ orphan: true
 
 ## Signature
 
-```text
+```fj
 def {{ macro.name }}
 {%- if macro.params %} {{ macro.params | join(", ") }}{% endif %}
 {%- if macro.locals_ %} @ {{ macro.locals_ | join(", ") }}{% endif %}
 {%- if macro.requires_labels %} < {{ macro.requires_labels | join(", ") }}{% endif %}
 {%- if macro.exports_labels %} > {{ macro.exports_labels | join(", ") }}{% endif %} { ... }
 ```
-
-(Code blocks render with FlipJump-specific syntax highlighting starting in v0.5.)
 
 **Defined in** [{{ file_rel }}.fj]({{ file_link }}) — lines {{ macro.start_line }}–{{ macro.end_line }}.
 
