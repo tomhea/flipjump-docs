@@ -34,3 +34,8 @@ Thumbs.db
 .env.local
 *.pem
 *.key
+
+# Local MCP/agent state artifacts (Claude Code, ruvector, etc.)
+ruvector.db
+*.rvf
+
