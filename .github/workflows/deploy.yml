@@ -1,0 +1,46 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: deploy-fjdocs
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: docs/requirements.txt
+
+      - name: Install Sphinx deps
+        run: pip install -r docs/requirements.txt
+
+      - name: Build Sphinx site
+        run: cd docs && make html
+
+      # SHA-pinned for supply-chain safety: this action has access to
+      # PRIVATE_SSH_KEY. Tag refs (e.g. @v8) can be force-pushed; SHAs
+      # cannot. burnett01/rsync-deployments tag 8.0.5 (also reachable
+      # via the floating @v8 release tag):
+      - name: Deploy to fjdocs.tomhe.app via rsync
+        uses: burnett01/rsync-deployments@66257cad6bfeb2171d3b6bfa6c9a22279dd9c3a1
+        with:
+          switches: -avzr --delete
+          path: docs/_build/html/
+          remote_path: ${{ secrets.WEB_ROOT_PATH }}
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.PRIVATE_SSH_KEY }}

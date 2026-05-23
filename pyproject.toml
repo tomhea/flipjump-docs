@@ -11,7 +11,15 @@ requires-python = ">=3.12"
 [project.optional-dependencies]
 dev = [
     "pytest>=8,<10",
+    "pyyaml>=6,<7",
 ]
+
+# Declare zero Python packages so `pip install -e .` works as an "empty"
+# project at M2. Real Python modules land in M3 (the STL extractor under
+# docs/_ext/); at that point this stub will be replaced by an actual
+# packages config.
+[tool.setuptools]
+py-modules = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

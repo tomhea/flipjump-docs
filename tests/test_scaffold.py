@@ -10,8 +10,8 @@ STL source is reachable for later milestones' extractor.
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -40,22 +40,27 @@ def test_sphinx_conf_exists():
 def test_sphinx_build_succeeds(tmp_path):
     """`sphinx-build -W` must exit 0 against the current docs/source/ tree.
 
-    Builds into a tmp_path to avoid clobbering the developer's local
-    docs/_build/. The -W flag promotes warnings to errors, matching the
-    plan's "no warnings" contract.
+    Invoked as `python -m sphinx` (via `sys.executable`) rather than the
+    `sphinx-build` script so the test always uses the same interpreter
+    pytest is running in. The `sphinx-build` shim on PATH may belong to
+    a different Python (e.g. a stale global install) that does not have
+    the docs/requirements.txt deps available.
     """
-    if shutil.which("sphinx-build") is None:
-        pytest.skip("sphinx-build not on PATH (install docs/requirements.txt)")
+    try:
+        import sphinx  # noqa: F401
+    except ImportError:
+        pytest.skip("sphinx not installed in this interpreter")
 
     out_dir = tmp_path / "html"
     result = subprocess.run(
-        ["sphinx-build", "-W", "-b", "html", str(DOCS_SOURCE), str(out_dir)],
+        [sys.executable, "-m", "sphinx", "-W", "-b", "html",
+         str(DOCS_SOURCE), str(out_dir)],
         capture_output=True,
         text=True,
         env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
     assert result.returncode == 0, (
-        f"sphinx-build failed with exit code {result.returncode}\n"
+        f"sphinx -m failed with exit code {result.returncode}\n"
         f"STDOUT:\n{result.stdout}\n"
         f"STDERR:\n{result.stderr}"
     )
