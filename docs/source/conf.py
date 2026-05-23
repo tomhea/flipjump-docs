@@ -25,8 +25,20 @@ release = "0.4"
 extensions = [
     "myst_parser",
     "sphinx_design",
+    "sphinx_sitemap",
+    "notfound.extension",
     "fj_stl_extract",
 ]
+
+# sphinx-sitemap needs the canonical URL to write absolute links.
+html_baseurl = "https://fjdocs.tomhe.app/"
+# Single-language, single-version site — strip the default `{lang}/{version}/`
+# prefix that sphinx-sitemap inserts for multi-translation projects.
+sitemap_url_scheme = "{link}"
+
+# sphinx-notfound-page: serve a friendly 404 with site nav. Default
+# settings work; we just enable the extension above.
+notfound_urls_prefix = "/"
 
 # Path resolution: from docs/source/conf.py, the flip-jump submodule
 # sits at ../../vendor/flip-jump/flipjump/stl. This is the default in
@@ -56,6 +68,11 @@ exclude_patterns: list[str] = [
 
 html_theme = "furo"
 html_title = "FlipJump"
+html_static_path = ["_static"]
+# `_extra/` ships verbatim to the deploy root (sibling of /index.html).
+# Used for robots.txt — separated from `_static/` so the file doesn't
+# double-copy into `_static/` AND the root.
+html_extra_path = ["_extra"]
 
 # Furo theme options: a permanent "Try the IDE" button in the top
 # right of every page, plus an Edit-on-GitHub link.
