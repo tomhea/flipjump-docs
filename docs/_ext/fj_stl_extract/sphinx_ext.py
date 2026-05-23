@@ -1,8 +1,8 @@
 """Sphinx extension hook.
 
-Wires the extractor + renderer into the Sphinx build via the
-`builder-inited` event so the generated Markdown pages exist before
-Sphinx reads the source tree.
+Wires the extractor + renderer + Pygments lexer/style into the Sphinx
+build via the `builder-inited` event so the generated Markdown pages
+exist before Sphinx reads the source tree.
 
 Configuration values (set in `conf.py`):
 
@@ -21,6 +21,8 @@ from pathlib import Path
 from typing import Any
 
 from .pipeline import extract_stl
+from .pygments_lexer import FlipJumpLexer
+from .pygments_style import FlipJumpDarkStyle
 from .renderer import render_stl
 
 __all__ = ["setup"]
@@ -29,9 +31,14 @@ __all__ = ["setup"]
 def setup(app: Any) -> dict[str, Any]:  # `Any` to avoid hard sphinx dep at import time
     app.add_config_value("fj_stl_root", "../../vendor/flip-jump/flipjump/stl", "env")
     app.add_config_value("fj_stl_output", "stl/_generated", "env")
+    app.add_lexer("fj", FlipJumpLexer)
+    # Sphinx's add_lexer only registers the alias passed to it. Other
+    # aliases on the lexer class (`flipjump`, `FlipJump`) work because
+    # Pygments' own get_lexer_by_name picks them up from the class's
+    # aliases attribute when the lexer is importable.
     app.connect("builder-inited", _on_builder_inited)
     return {
-        "version": "0.4",
+        "version": "0.5",
         "parallel_read_safe": True,
         "parallel_write_safe": True,
     }

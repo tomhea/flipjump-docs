@@ -55,5 +55,11 @@ exclude_patterns: list[str] = [
 html_theme = "furo"
 html_title = "FlipJump"
 
+# Custom Pygments style matching the FlipJump IDE's `fj-dark` theme so
+# code blocks here look identical to code in the editor at fj.tomhe.app.
+# The module-path string lets Sphinx import it as a custom style class.
+pygments_style = "fj_stl_extract.pygments_style.FlipJumpDarkStyle"
+pygments_dark_style = "fj_stl_extract.pygments_style.FlipJumpDarkStyle"
+
 # Permanent "Try the IDE" link will move into html_theme_options in M8;
 # left out at M1 so empty-scaffold Furo defaults render cleanly.
