@@ -10,9 +10,9 @@ The site is built with [Sphinx](https://www.sphinx-doc.org/) + [MyST-Parser](htt
 flipjump-docs/
 ├── vendor/flip-jump/        # git submodule, pinned to a flip-jump commit
 ├── docs/
-│   ├── source/              # hand-written Markdown + auto-generated _generated/
+│   ├── source/              # conf.py + hand-written Markdown + auto-generated _generated/
 │   ├── _ext/                # Sphinx extension (parser) + Pygments lexer + templates
-│   ├── conf.py, Makefile, requirements.txt
+│   ├── Makefile, make.bat, requirements.txt
 │   └── _build/              # output (gitignored)
 └── .github/workflows/       # deploy + PR build + weekly submodule bump
 ```
@@ -54,7 +54,7 @@ A weekly GitHub Actions cron (`.github/workflows/submodule-bump.yml`) does this 
 
 ## Contributing
 
-- **Never push to `main`.** Branch protection enforces this. Open a PR from a feature branch.
+- **Never push to `main`.** Open a PR from a feature branch. (Branch protection will be enabled to enforce this once the bootstrap PRs land.)
 - **TDD**: every PR includes a failing-then-passing test for whatever it changes (pytest for Python, `sphinx-build -W` for content, `actionlint` for workflows).
 - **Branch naming**: `milestone-<n>-<slug>` for milestone work, `setup/<slug>` for setup tasks, `fix/<slug>` for bug fixes.
 - **Merge with `--no-ff`** so each milestone appears in `git log --first-parent`.

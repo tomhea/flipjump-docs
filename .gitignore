@@ -14,6 +14,11 @@ __pycache__/
 .venv/
 venv/
 env/
+build/
+dist/
+.coverage
+.coverage.*
+htmlcov/
 
 # Editors
 .vscode/
