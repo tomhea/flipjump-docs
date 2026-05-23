@@ -48,7 +48,16 @@ def build_dep_graph(macros: list[MacroNode]) -> DepGraph:
     graph = DepGraph()
     for caller in macros:
         caller_key = macro_key(caller)
+        # A statement-start identifier that matches one of the caller's
+        # own bound names (param, @-local, <-required-label, >-exported-
+        # label) is a local reference, not a call. Pre-compute the set
+        # so we skip them cheaply — otherwise `unresolved` fills up with
+        # every parameter mention in every body.
+        bound = (set(caller.params) | set(caller.locals_)
+                 | set(caller.requires_labels) | set(caller.exports_labels))
         for callee_name, call_arity in _scan_calls(caller.body_tokens):
+            if callee_name in bound:
+                continue
             resolved = _resolve(callee_name, caller, by_fq)
             if not resolved:
                 graph.unresolved[caller_key].add(callee_name)
@@ -86,7 +95,7 @@ def _scan_calls(body: list[Token]) -> list[tuple[str, int]]:
         if t.kind == TokenKind.COMMENT:
             i += 1
             continue
-        if at_stmt_start and t.kind == TokenKind.IDENT and _looks_like_call(t.text):
+        if at_stmt_start and t.kind == TokenKind.IDENT:
             arity, consumed = _count_args(body, i + 1)
             calls.append((t.text, arity))
             i += 1 + consumed
@@ -95,16 +104,6 @@ def _scan_calls(body: list[Token]) -> list[tuple[str, int]]:
         at_stmt_start = False
         i += 1
     return calls
-
-
-def _looks_like_call(ident: str) -> bool:
-    """Heuristic: an identifier is a candidate call if it contains a `.`
-    (namespace-qualified) OR is a plain word (not pure operator chars).
-
-    Single-letter loop variables like `i` introduced by `rep(n, i) ...`
-    also look like calls; they're filtered later when resolution fails.
-    """
-    return bool(ident)
 
 
 def _count_args(body: list[Token], start: int) -> tuple[int, int]:

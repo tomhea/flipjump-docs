@@ -187,3 +187,18 @@ def test_line_and_col_tracked():
     assert out[0].line == 1 and out[0].col == 1
     assert out[1].kind == TokenKind.NEWLINE
     assert out[2].line == 2 and out[2].col == 1
+
+
+def test_string_with_escaped_newline_advances_line_counter():
+    # `"abc\<newline>def"` — the backslash-newline inside the string is
+    # an escape sequence, not a token boundary. The line counter MUST
+    # advance through it so downstream doc-attachment finds the correct
+    # source row for the next def. (CR-ist finding on M3.)
+    src = '"abc\\\ndef"\n\nns stl { def loop {} }'
+    out = list(tokenize(src))
+    # Find the def keyword and check its line.
+    def_tok = next(t for t in out if t.kind == TokenKind.KEYWORD and t.text == "def")
+    assert def_tok.line == 4, (
+        f"def should be on line 4 (string line 1, esc newline → line 2, "
+        f"newline line 3, blank line 4), got line {def_tok.line}"
+    )

@@ -124,6 +124,21 @@ ns stl {
     assert info.space_complexity is None
 
 
+def test_combined_complexity_after_explicit_space_only():
+    # Reversed order vs the test above — pin the same precedence rule.
+    src = """\
+ns stl {
+    // Space Complexity: S
+    // Complexity: B
+    def loop {}
+}
+"""
+    info = _doc(src, "loop")
+    assert info.space_complexity == "S"
+    # Time stays None — catch-all only fires when BOTH fields are missing.
+    assert info.time_complexity is None
+
+
 def test_requires_collected_as_list():
     src = """\
 ns hex {

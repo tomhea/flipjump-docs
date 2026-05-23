@@ -49,8 +49,10 @@ KEYWORDS = frozenset({"def", "ns", "rep", "pad", "reserve", "segment", "wflip"})
 # The Monaco tokenizer for the IDE classifies `dbit`, `dw`, `w`, `bit` as
 # "types" for syntax highlighting. They are NOT language keywords —
 # `dw` and `dbit` are defined as named constants in runlib.fj and `w`
-# is set at compile time. The parser treats them as plain IDENTs; the
-# Pygments lexer (M5) will do its own visual classification.
+# is set at compile time. The parser treats them as plain IDENTs.
+#
+# Reserved for the M5 Pygments lexer, which will mirror the Monaco
+# tokenizer's visual classification for code blocks in the docs.
 WELL_KNOWN_TYPE_NAMES = frozenset({"dbit", "dw", "w", "bit"})
 
 # Single-char punctuation that maps 1:1 to a token kind.
@@ -128,12 +130,22 @@ def tokenize(source: str) -> Iterator[Token]:
             quote = ch
             start = i
             start_col = col
+            string_start_line = line
             i += 1
             col += 1
             while i < n:
                 if source[i] == "\\" and i + 1 < n:
+                    # An escaped newline inside a string still advances
+                    # the line counter — otherwise every token after the
+                    # string would report a wrong line number, and the
+                    # doc-attachment pass would walk to the wrong source
+                    # row. (See CR-ist finding on PR #5.)
+                    if source[i + 1] == "\n":
+                        line += 1
+                        col = 1
+                    else:
+                        col += 2
                     i += 2
-                    col += 2
                     continue
                 if source[i] == quote:
                     i += 1
@@ -145,7 +157,7 @@ def tokenize(source: str) -> Iterator[Token]:
                 else:
                     col += 1
                 i += 1
-            yield Token(TokenKind.STRING, source[start:i], line, start_col)
+            yield Token(TokenKind.STRING, source[start:i], string_start_line, start_col)
             continue
 
         # ---- numbers ----

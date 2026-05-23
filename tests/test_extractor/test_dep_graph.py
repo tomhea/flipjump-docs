@@ -146,6 +146,30 @@ ns stl { def caller { does.not.exist 1, 2 } }
     assert g.depends_on[macro_key(caller)] == set()
 
 
+def test_caller_own_params_locals_labels_are_not_unresolved():
+    """Param/local/exported-label/required-label names used at body
+    statement-start must NOT pollute the `unresolved` set — they are
+    local references, not external macro calls. (CR-ist finding on M3.)
+    """
+    src = """\
+ns stl { def target {} }
+ns stl {
+    def caller dst, src @ end < .ret > IO {
+        stl.target
+        dst end ret src IO
+    }
+}
+"""
+    file, g = _graph(src)
+    [caller] = [m for m in file.macros if m.name == "caller"]
+    unresolved = g.unresolved.get(macro_key(caller), set())
+    for bound in ("dst", "src", "end", ".ret", "ret", "IO"):
+        assert bound not in unresolved, (
+            f"{bound!r} is a caller-bound name and should not appear in "
+            f"unresolved, got: {unresolved}"
+        )
+
+
 # ---------- realistic STL fragment ----------
 
 def test_runlib_startup_dependencies():
@@ -159,5 +183,6 @@ ns stl {
     [base] = [m for m in file.macros if m.name == "startup" and m.arity == 1]
     [wrapper] = [m for m in file.macros if m.name == "startup" and m.arity == 0]
     # Wrapper calls base/arity-1.
-    assert macro_key(base) in g.depends_on[macro_key(wrapper)]
+    deps = g.depends_on[macro_key(wrapper)]
+    assert macro_key(base) in deps
     assert macro_key(wrapper) in g.used_by[macro_key(base)]

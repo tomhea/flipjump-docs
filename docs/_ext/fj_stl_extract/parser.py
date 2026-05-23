@@ -259,19 +259,21 @@ class _Parser:
     # ---------- IDENT = expr (constant at namespace top level) ----------
 
     def _is_constant_assignment(self) -> bool:
-        """Return True if `current_ident (NEWLINE|COMMENT)* '='` matches.
+        """Return True if `current_ident COMMENT? '='` matches on the
+        same logical line.
 
         Constants only appear as `NAME = expr` at top level / namespace
-        top level. We must not confuse them with body statements like
-        `foo = bar` inside a macro body (which the parser never reaches
-        since macro bodies are captured opaquely).
+        top level. We must not be loose enough to treat
+        `IDENT \n stuff = ...` as a constant — only same-line `=` counts.
+        Inline comments (`IDENT // comment =`) are tolerated since
+        nothing in source legitimately uses that form.
         """
         if self.peek().kind != TokenKind.IDENT:
             return False
         i = self.pos + 1
-        # Skip trivia
-        while i < len(self.tokens) and self.tokens[i].kind in (TokenKind.NEWLINE,
-                                                                TokenKind.COMMENT):
+        # Skip COMMENT tokens but NOT NEWLINE — the `=` must be on the
+        # same logical line as the identifier.
+        while i < len(self.tokens) and self.tokens[i].kind == TokenKind.COMMENT:
             i += 1
         return i < len(self.tokens) and self.tokens[i].kind == TokenKind.EQUALS
 
