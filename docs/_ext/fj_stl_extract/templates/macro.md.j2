@@ -1,0 +1,70 @@
+---
+orphan: true
+---
+
+# `{{ macro.fq_name }}` {%- if has_overloads %} (arity {{ macro.arity }}){%- endif %}
+
+{% if macro.doc.description -%}
+{{ macro.doc.description }}
+{%- endif %}
+
+## Signature
+
+```text
+def {{ macro.name }}
+{%- if macro.params %} {{ macro.params | join(", ") }}{% endif %}
+{%- if macro.locals_ %} @ {{ macro.locals_ | join(", ") }}{% endif %}
+{%- if macro.requires_labels %} < {{ macro.requires_labels | join(", ") }}{% endif %}
+{%- if macro.exports_labels %} > {{ macro.exports_labels | join(", ") }}{% endif %} { ... }
+```
+
+(Code blocks render with FlipJump-specific syntax highlighting starting in v0.5.)
+
+**Defined in** [{{ file_rel }}.fj]({{ file_link }}) — lines {{ macro.start_line }}–{{ macro.end_line }}.
+
+{% if macro.doc.time_complexity or macro.doc.space_complexity -%}
+## Complexity
+
+{% if macro.doc.time_complexity -%}
+- **Time**: `{{ macro.doc.time_complexity }}`
+{% endif -%}
+{% if macro.doc.space_complexity -%}
+- **Space**: `{{ macro.doc.space_complexity }}`
+{% endif %}
+{%- endif %}
+
+{% if macro.doc.requires -%}
+## Requires init
+
+The following must be initialised before this macro is invoked:
+
+{% for req in macro.doc.requires -%}
+- {{ req }}
+{% endfor %}
+{%- endif %}
+
+{% if macro.doc.output_params -%}
+## Output labels
+
+This macro exposes labels into the caller's scope via `>`:
+
+{% for name, desc in macro.doc.output_params.items() -%}
+- **`{{ name }}`** — {{ desc }}
+{% endfor %}
+{%- endif %}
+
+{% if depends_on -%}
+## Depends on
+
+{% for dep in depends_on -%}
+- [`{{ dep.fq_name }}{% if dep.arity %}/{{ dep.arity }}{% endif %}`]({{ dep.link }})
+{% endfor %}
+{%- endif %}
+
+{% if used_by -%}
+## Used by
+
+{% for user in used_by -%}
+- [`{{ user.fq_name }}{% if user.arity %}/{{ user.arity }}`{% endif %}]({{ user.link }})
+{% endfor %}
+{%- endif %}
