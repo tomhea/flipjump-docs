@@ -1,0 +1,41 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: deploy-fjdocs
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Sphinx deps
+        run: pip install -r docs/requirements.txt
+
+      - name: Build Sphinx site
+        run: cd docs && make html
+
+      - name: Deploy to fjdocs.tomhe.app via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avzr --delete
+          path: docs/_build/html/
+          remote_path: ${{ secrets.WEB_ROOT_PATH }}
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.PRIVATE_SSH_KEY }}

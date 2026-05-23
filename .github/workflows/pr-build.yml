@@ -1,0 +1,46 @@
+name: PR build
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run actionlint
+        uses: raven-actions/actionlint@v2
+
+  build-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install deps
+        run: |
+          pip install -r docs/requirements.txt
+          pip install "pytest>=8,<10" "pyyaml>=6,<7"
+
+      - name: Build Sphinx site (-W via Makefile default)
+        run: cd docs && make html
+
+      - name: Run pytest
+        run: pytest tests/ -v
+
+      - name: Upload HTML preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-preview
+          path: docs/_build/html/
+          retention-days: 7

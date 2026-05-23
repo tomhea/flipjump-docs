@@ -1,0 +1,48 @@
+name: Bump flip-jump submodule
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"  # Mondays 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump vendor/flip-jump to upstream main HEAD
+        run: |
+          git submodule update --remote vendor/flip-jump
+          echo "After bump:"
+          git submodule status
+
+      - name: Create PR if submodule moved
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: bump vendor/flip-jump to upstream main"
+          title: "chore: bump vendor/flip-jump submodule"
+          branch: chore/bump-flip-jump-submodule
+          delete-branch: true
+          labels: submodule-bump
+          body: |
+            Weekly automated bump of `vendor/flip-jump` to upstream
+            `main` HEAD.
+
+            The STL extractor's auto-generated pages will reflect any new
+            macros, removed macros, or signature changes introduced
+            upstream since the last bump.
+
+            **If the PR build is green**, merge. **If something fails**,
+            investigate which upstream change broke the docs build before
+            merging.
