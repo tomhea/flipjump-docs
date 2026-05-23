@@ -53,8 +53,15 @@ def build_dep_graph(macros: list[MacroNode]) -> DepGraph:
         # label) is a local reference, not a call. Pre-compute the set
         # so we skip them cheaply — otherwise `unresolved` fills up with
         # every parameter mention in every body.
+        #
+        # `requires_labels` come in dot-prefixed (e.g. ".ret", "..tables.x")
+        # because that's how they're written in source. A body usage like
+        # bare `ret` should also be treated as bound — strip the leading
+        # dots when adding to the filter set.
         bound = (set(caller.params) | set(caller.locals_)
-                 | set(caller.requires_labels) | set(caller.exports_labels))
+                 | set(caller.exports_labels)
+                 | {label.lstrip(".") for label in caller.requires_labels}
+                 | set(caller.requires_labels))
         for callee_name, call_arity in _scan_calls(caller.body_tokens):
             if callee_name in bound:
                 continue

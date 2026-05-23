@@ -123,7 +123,9 @@ def to_json_dict(index: StlIndex) -> dict[str, Any]:
         ]
         files_out.append({
             "rel_path": f.rel_path,
-            "abs_path": f.abs_path,
+            # `abs_path` deliberately omitted — leaks local filesystem
+            # paths if the JSON is ever published. `rel_path` plus the
+            # caller-known STL root is enough to locate the source.
             "macros": macros_out,
             "constants": constants_out,
         })

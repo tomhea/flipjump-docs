@@ -150,23 +150,32 @@ def test_caller_own_params_locals_labels_are_not_unresolved():
     """Param/local/exported-label/required-label names used at body
     statement-start must NOT pollute the `unresolved` set — they are
     local references, not external macro calls. (CR-ist finding on M3.)
+
+    Also verifies the dot-strip: a `< .ret` clause matches both `.ret`
+    AND bare `ret` in the body (the user might use either form).
     """
     src = """\
 ns stl { def target {} }
 ns stl {
-    def caller dst, src @ end < .ret > IO {
+    def caller dst, src @ end < .ret, ..tables.foo > IO {
         stl.target
-        dst end ret src IO
+        dst end .ret ret src IO ..tables.foo
+        tables.foo
     }
 }
 """
     file, g = _graph(src)
     [caller] = [m for m in file.macros if m.name == "caller"]
     unresolved = g.unresolved.get(macro_key(caller), set())
-    for bound in ("dst", "src", "end", ".ret", "ret", "IO"):
+    expected_filtered = (
+        "dst", "src", "end", "IO",
+        ".ret", "ret",
+        "..tables.foo", "tables.foo",
+    )
+    for bound in expected_filtered:
         assert bound not in unresolved, (
-            f"{bound!r} is a caller-bound name and should not appear in "
-            f"unresolved, got: {unresolved}"
+            f"{bound!r} is a caller-bound name (or its dot-stripped form) "
+            f"and should not appear in unresolved, got: {unresolved}"
         )
 
 
