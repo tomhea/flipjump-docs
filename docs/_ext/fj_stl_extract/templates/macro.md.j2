@@ -18,7 +18,8 @@ def {{ macro.name }}
 {%- if macro.exports_labels %} > {{ macro.exports_labels | join(", ") }}{% endif %} { ... }
 ```
 
-**Defined in** [{{ file_rel }}.fj]({{ file_link }}) — lines {{ macro.start_line }}–{{ macro.end_line }}.
+**Defined in** [{{ file_rel }}.fj]({{ file_link }}) — lines {{ macro.start_line }}–{{ macro.end_line }}. \
+[View source on GitHub](https://github.com/tomhea/flip-jump/blob/main/flipjump/stl/{{ file_rel }}.fj#L{{ macro.start_line }}-L{{ macro.end_line }}).
 
 {% if macro.doc.time_complexity or macro.doc.space_complexity -%}
 ## Complexity
