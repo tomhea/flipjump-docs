@@ -28,7 +28,7 @@ Token mapping (Monarch → Pygments):
 
 from __future__ import annotations
 
-from pygments.lexer import RegexLexer, bygroups, include, words
+from pygments.lexer import RegexLexer, bygroups, words
 from pygments.token import (
     Comment,
     Keyword,
@@ -44,6 +44,17 @@ from pygments.token import (
 __all__ = ["FlipJumpLexer"]
 
 
+# Bare-word identifiers that should NEVER be classified as a macro
+# call, even when they appear at line-start. Mirrors the negative
+# lookahead in the IDE's macro-call regex.
+_NON_MACRO_LEAD_WORDS = (
+    "def", "ns", "rep", "pad", "reserve", "segment", "wflip",
+    "dbit", "dw", "w",
+    # NOTE: `bit` is NOT in the IDE's `types` list, so it must NOT be
+    # excluded here either. The IDE colours `bit` as a plain identifier.
+)
+
+
 class FlipJumpLexer(RegexLexer):
     name = "FlipJump"
     aliases = ["fj", "flipjump", "FlipJump"]
@@ -52,68 +63,80 @@ class FlipJumpLexer(RegexLexer):
 
     tokens = {
         "root": [
-            # Whitespace & comments
-            (r"[ \t]+", Whitespace),
+            # ---- Strings FIRST so quoted content isn't reinterpreted ----
+            # (CR-ist M5 finding: previously a string like "def" had the
+            # outer quote eaten by the catchall and `def` mis-classified
+            # as Keyword.Declaration.)
+            (r'"([^"\\]|\\.)*"', String.Double),
+            (r"'([^'\\]|\\.)*'", String.Single),
+
+            # ---- Whitespace & comments ----
             (r"\\\n", Whitespace),  # line continuation
-            (r"\n", Whitespace),
             (r"//[^\n]*", Comment.Single),
 
-            # `def NAME` — colour NAME as Name.Function
+            # ---- Macro call detection (parity with the IDE) ----
+            # An identifier at the START of a logical line, not one of
+            # the language keywords/types, followed by either an args
+            # list, a comment, or EOL, is coloured as a macro call.
+            # Mirrors the regex in CodeEditor.tsx exactly.
+            (r"(^[ \t]*)"
+             r"((?!(?:" + "|".join(_NON_MACRO_LEAD_WORDS) + r")\b)"
+             r"[A-Za-z_.][\w.]*)"
+             r"(?=[ \t]+[^;\s/]|[ \t]*(?://|$))",
+             bygroups(Whitespace, Name.Function.Magic)),
+
+            (r"[ \t]+", Whitespace),
+            (r"\n", Whitespace),
+
+            # ---- def NAME / ns NAME with the introduced-name coloured ----
             (r"(\bdef\b)([ \t]+)([A-Za-z_]\w*)",
              bygroups(Keyword.Declaration, Whitespace, Name.Function)),
-
-            # `ns NAME` — colour NAME as Name.Namespace
             (r"(\bns\b)([ \t]+)([A-Za-z_]\w*)",
              bygroups(Keyword, Whitespace, Name.Namespace)),
 
-            # Other declaration keywords
+            # ---- Other simple keywords ----
             (r"\brep\b", Keyword),
 
-            # Labels and constants come BEFORE the type/directive rules
-            # so that `dw =` (the constant definition in runlib.fj) is
-            # coloured as a constant LHS, not as a type word. Mirrors
-            # the rule ordering in CodeEditor.tsx's Monaco tokenizer.
+            # ---- Labels and constants BEFORE type/directive rules ----
+            # so `dw = ...` is constant LHS, not a type word, and
+            # `foo:` is a label, not an ident.
 
-            # Labels: identifier followed by `:`
-            (r"([A-Za-z_]\w*)(\s*)(:)",
-             bygroups(Name.Label, Whitespace, Punctuation)),
-
-            # Constants: identifier followed by `=`
-            (r"([A-Za-z_]\w*)(\s*)(=)",
+            # Constants: `IDENT = expr`. The `(?!=)` after `=` is critical
+            # so the rule does NOT fire on `a == b` (CR-ist M5 finding).
+            (r"([A-Za-z_]\w*)([ \t]*)(=)(?!=)",
              bygroups(Name.Constant, Whitespace, Operator)),
 
-            # Directives
+            # Labels: `IDENT:`. The `(?!:)` after `:` avoids matching
+            # the `::` digraph if FlipJump ever introduces one.
+            (r"([A-Za-z_]\w*)([ \t]*)(:)(?!:)",
+             bygroups(Name.Label, Whitespace, Punctuation)),
+
+            # ---- Directives ----
             (words(("pad", "reserve", "segment", "wflip"), suffix=r"\b"),
              Name.Builtin),
 
-            # Well-known type-like names (compile-time constants defined
-            # in runlib.fj but classified visually as types to match the
-            # IDE).
-            (words(("dbit", "dw", "w", "bit"), suffix=r"\b"),
+            # ---- Well-known type-like names ----
+            # Matches the IDE's `types` list — NOT including `bit`,
+            # which the IDE classifies as a plain identifier.
+            (words(("dbit", "dw", "w"), suffix=r"\b"),
              Keyword.Type),
 
-            # Dotted identifiers (namespace refs like `stl.startup`,
-            # `.foo`, `..tables.x`). Matched after labels/constants so
-            # those win when followed by `:`/`=`.
+            # ---- Identifiers ----
+            # Dotted prefixes (namespace navigation): `.foo`, `..tables.x`.
             (r"\.{1,2}[A-Za-z_][\w.]*", Name.Other),
+            # Bare or dotted identifiers (`stl.startup`, `bit`, `_local`).
             (r"[A-Za-z_][\w.]*", Name),
 
-            # Numbers
+            # ---- Literals ----
             (r"0[xX][0-9a-fA-F]+", Number.Hex),
             (r"0[bB][01]+", Number.Bin),
             (r"\d+", Number.Integer),
 
-            # Strings
-            (r'"([^"\\]|\\.)*"', String.Double),
-            (r"'([^'\\]|\\.)*'", String.Single),
-
-            # Punctuation: `;` is the flip/jump separator, `,` separates args
+            # ---- Punctuation & operators ----
             (r"[;,{}()\[\]]", Punctuation),
-
-            # Operators — see CodeEditor.tsx's operator character class
             (r"[!=<>?@^|%&*+\-/:#$]", Operator),
 
-            # Anything else
+            # ---- Fallback ----
             (r".", Text),
         ],
     }

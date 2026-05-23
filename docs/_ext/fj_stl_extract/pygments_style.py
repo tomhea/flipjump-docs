@@ -34,8 +34,10 @@ class FlipJumpDarkStyle(Style):
         Text:               "#d4d4d4",
         Whitespace:         "#d4d4d4",
 
+        # Pygments' Token hierarchy auto-inherits styles from parents,
+        # so a single Comment entry covers Comment.Single (the only
+        # comment form FlipJump has).
         Comment:            "italic #6a9955",
-        Comment.Single:     "italic #6a9955",
 
         # 'def', 'ns', 'rep'
         Keyword:                  "bold #569cd6",

@@ -32,8 +32,10 @@ def setup(app: Any) -> dict[str, Any]:  # `Any` to avoid hard sphinx dep at impo
     app.add_config_value("fj_stl_root", "../../vendor/flip-jump/flipjump/stl", "env")
     app.add_config_value("fj_stl_output", "stl/_generated", "env")
     app.add_lexer("fj", FlipJumpLexer)
-    # The lexer's `aliases` list (`fj`, `flipjump`, `FlipJump`) makes
-    # ```fj, ```flipjump, ```FlipJump all work without re-registering.
+    # Sphinx's add_lexer only registers the alias passed to it. Other
+    # aliases on the lexer class (`flipjump`, `FlipJump`) work because
+    # Pygments' own get_lexer_by_name picks them up from the class's
+    # aliases attribute when the lexer is importable.
     app.connect("builder-inited", _on_builder_inited)
     return {
         "version": "0.5",
