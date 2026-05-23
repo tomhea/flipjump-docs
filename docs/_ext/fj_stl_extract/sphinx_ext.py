@@ -38,6 +38,8 @@ def setup(app: Any) -> dict[str, Any]:  # `Any` to avoid hard sphinx dep at impo
 
 
 def _on_builder_inited(app: Any) -> None:
+    from sphinx.errors import ExtensionError
+
     # Resolve paths relative to the Sphinx conf directory.
     confdir = Path(app.confdir)
     stl_root = (confdir / app.config.fj_stl_root).resolve()
@@ -46,11 +48,25 @@ def _on_builder_inited(app: Any) -> None:
     try:
         index = extract_stl(stl_root)
     except FileNotFoundError as e:
-        from sphinx.errors import ExtensionError
         raise ExtensionError(
             f"fj_stl_extract: cannot find STL source at {stl_root}.\n"
             f"Run `git submodule update --init --recursive` and try again.\n"
             f"(Underlying error: {e})"
         )
 
-    render_stl(index, out_dir)
+    try:
+        render_stl(index, out_dir)
+    except (OSError, PermissionError) as e:
+        raise ExtensionError(
+            f"fj_stl_extract: failed to write generated pages to {out_dir}.\n"
+            f"Check filesystem permissions and that the path is writable.\n"
+            f"(Underlying error: {type(e).__name__}: {e})"
+        )
+    except Exception as e:  # noqa: BLE001 — friendly Sphinx error surface
+        # Jinja2 template errors, key errors, anything else — surface as
+        # an ExtensionError so Sphinx prints something readable instead
+        # of a raw traceback during the build.
+        raise ExtensionError(
+            f"fj_stl_extract: render failed.\n"
+            f"(Underlying error: {type(e).__name__}: {e})"
+        )

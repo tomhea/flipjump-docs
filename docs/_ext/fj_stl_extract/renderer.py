@@ -84,7 +84,6 @@ def render_stl(index: StlIndex, output_dir: str | Path) -> list[Path]:
     )
     macro_tpl = env.get_template("macro.md.j2")
     file_tpl = env.get_template("file.md.j2")
-    root_tpl = env.get_template("stl_root.md.j2")
 
     # Pre-compute overload sets so the page header can include the arity
     # only when ambiguity exists.
@@ -131,13 +130,9 @@ def render_stl(index: StlIndex, output_dir: str | Path) -> list[Path]:
         path.write_text(text, encoding="utf-8")
         written.append(path)
 
-    # ---------- root toctree ----------
-    text = root_tpl.render(
-        files=[{"slug": file_slug(f.rel_path)} for f in index.files],
-    )
-    root_path = out / "_root.md"
-    root_path.write_text(text, encoding="utf-8")
-    written.append(root_path)
+    # (No `_root.md` is generated — the glob toctree in stl/index.md
+    # picks up the file pages directly. An earlier draft of this
+    # renderer wrote a second toctree page; it was orphaned and dead.)
 
     # ---------- prune stale ----------
     keep = {p.name for p in written}

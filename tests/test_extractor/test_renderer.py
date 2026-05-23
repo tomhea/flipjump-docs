@@ -59,7 +59,6 @@ ns stl {
     idx = _mini_index(src)
     written = render_stl(idx, tmp_path)
     names = {p.name for p in written}
-    assert "_root.md" in names
     assert "file--fixture.md" in names
     assert "macro--stl.loop--0.md" in names
     assert "macro--stl.fj--2.md" in names
@@ -197,14 +196,13 @@ def test_stale_files_pruned_on_regenerate(tmp_path):
     assert not (tmp_path / "macro--stl.b--0.md").exists()
 
 
-def test_root_md_lists_every_file_slug(tmp_path):
-    src = """\
-ns stl { def a {} }
-"""
-    idx = _mini_index(src, rel_path="bit/math")
-    render_stl(idx, tmp_path)
-    root = (tmp_path / "_root.md").read_text(encoding="utf-8")
-    assert "file--bit-math" in root
+def test_no_root_md_emitted(tmp_path):
+    """An earlier draft wrote `_root.md` as a second toctree, but it
+    was orphan + unreachable. Removed in M4 follow-up. This test
+    locks in that we don't accidentally regenerate it."""
+    src = "ns stl { def a {} }"
+    render_stl(_mini_index(src, rel_path="bit/math"), tmp_path)
+    assert not (tmp_path / "_root.md").exists()
 
 
 def test_macro_page_has_orphan_frontmatter(tmp_path):
