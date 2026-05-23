@@ -214,14 +214,13 @@ def test_macro_page_has_orphan_frontmatter(tmp_path):
     assert page.startswith("---\norphan: true\n---")
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Complexity glossary lives in language/complexity.md which "
-           "lands in M6. The template currently does NOT link to it; "
-           "this xfail must flip to pass when M6 wires the link back "
-           "into macro.md.j2.",
-)
 def test_complexity_links_to_glossary(tmp_path):
+    """M6: macro pages link to the hand-written complexity glossary at
+    language/complexity.md so readers can find what @, w, dw, dbit, n
+    mean without having to leave the page they're reading.
+    Anchor the assertion on the LINK TARGET path (not the visible text)
+    so future template-wording tweaks don't silently break the link.
+    """
     src = """\
 ns stl {
     // Time Complexity: 4@
@@ -230,7 +229,7 @@ ns stl {
 """
     render_stl(_mini_index(src), tmp_path)
     page = (tmp_path / "macro--stl.add--0.md").read_text(encoding="utf-8")
-    assert "complexity glossary" in page.lower()
+    assert "language/complexity.md" in page
 
 
 # ---------- end-to-end against real STL ----------

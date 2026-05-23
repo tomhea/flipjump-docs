@@ -18,5 +18,6 @@ While these docs are being built, see:
 :maxdepth: 2
 :hidden:
 
+language/index
 stl/index
 ```
