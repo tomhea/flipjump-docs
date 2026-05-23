@@ -4,7 +4,7 @@ This file records one-time GitHub configuration that lives outside the codebase.
 
 ## Branch protection (`main`)
 
-Verified active via `gh api repos/tomhea/flipjump-docs/branches/main`:
+Verified active via `gh api repos/tomhea/flipjump-docs/branches/main/protection`:
 
 | Setting | Value |
 |---------|-------|
@@ -21,11 +21,14 @@ Verified active via `gh api repos/tomhea/flipjump-docs/branches/main`:
 | Required signed commits | no |
 | Lock branch | no |
 
+All other protection fields (`block_creations`, `allow_fork_syncing`, `require_last_push_approval`, etc.) are left at GitHub defaults.
+
 To inspect: `gh api repos/tomhea/flipjump-docs/branches/main/protection`.
 
-To update: edit `.github/SETUP.md` AND apply the change via the API in the same PR, e.g.:
+To update: open a PR that edits `.github/SETUP.md` with the new intended state. Apply the API change *after the PR merges* so the doc and the live config land at the same commit on `main`:
 
 ```sh
+# After the PR merges:
 gh api -X PUT repos/tomhea/flipjump-docs/branches/main/protection --input protection.json
 ```
 
