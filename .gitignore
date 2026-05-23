@@ -20,9 +20,10 @@ dist/
 .coverage.*
 htmlcov/
 
-# Editors
+# Editors / dev tooling
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 .DS_Store
