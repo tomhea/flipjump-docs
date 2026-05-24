@@ -95,26 +95,43 @@ def _short_desc(text: str) -> str:
     """First content line of a description, suitable as the inline
     summary in a list bullet.
 
-    The previous version preferred non-indented prose over indented
-    lines. That broke macros like `bit.print_dec_uint` whose primary
-    summary is an indented line (`//   prints x[:n] as an unsigned
-    decimal number ...`) followed by a longer paragraph that is NOT
-    the right summary. New rule: just pick the first non-blank line,
-    regardless of indentation. The doc-attach pass already strips
-    leading whitespace on backticked pseudocode and keeps indented
-    prose readable.
+    The STL convention is:
+
+        // Time/Space complexity lines           ← stripped by doc_attach
+        // optional note/warning prose
+        //   indented intent summary             ← THIS is the natural summary
+        // longer prose explanation
+
+    So: prefer the FIRST INDENTED LINE (the conventional "intent
+    summary"), falling back to the first non-blank line if there is
+    no indented line. This fixes cases like `bit.inc1` and
+    `bit.exact_xor` where the first non-indented line is a warning
+    or a note about implementation details — those should not be
+    surfaced as the macro's one-line summary.
 
     Truncates long lines on word boundaries and never cuts inside an
-    inline-code backtick pair (which would leave a stray ``` ` ```
-    in the output).
+    inline-code backtick pair.
     """
     if not text:
         return ""
 
-    for raw_line in text.split("\n"):
-        line = raw_line.strip()
-        if line:
-            return _truncate(line, 140)
+    lines = [line.rstrip() for line in text.split("\n")]
+
+    # Pass 1: prefer indented (2+ space) lines. The STL's convention
+    # is `// @Assumes: ...` / `// Note: ...` flush-left, then the
+    # intent summary on a `//   ...` indented line. We want the
+    # intent line on the file page, not the warning. Caveat: if a
+    # macro ever puts a non-intent parenthetical on the first indented
+    # line ahead of the real intent, this picks the wrong one — no
+    # such case exists in the current STL.
+    for line in lines:
+        if line.startswith("  ") and line.strip():
+            return _truncate(line.strip(), 140)
+
+    # Pass 2: fall back to the first non-blank line.
+    for line in lines:
+        if line.strip():
+            return _truncate(line.strip(), 140)
 
     return ""
 

@@ -30,20 +30,215 @@ from .parser import FileNode
 __all__ = ["DocInfo", "attach_docs"]
 
 
-_TIME_RE = re.compile(r"^\s*Time\s+Complexity\s*:\s*(.+?)\s*$")
-_SPACE_RE = re.compile(r"^\s*Space\s+Complexity\s*:\s*(.+?)\s*$")
+# -----------------------------------------------------------------------
+# Per-macro description overrides.
+#
+# When the upstream `.fj` doc comment is missing, focused on warnings
+# / notes rather than what the macro does, or just unclear, we replace
+# its extracted description with a hand-authored summary.
+#
+# Each override is keyed by `(fq_name, arity)`. Applied AFTER auto-
+# extraction so complexity, @requires, @output-param, etc. are still
+# pulled from source — only the prose description changes.
+#
+# Overrides are written in Markdown and may use inline backticks.
+# Multi-line summaries should use two-trailing-space hard breaks
+# (handled by the renderer) to preserve line breaks in HTML.
+# -----------------------------------------------------------------------
+
+_BIT_DESCRIPTION = (
+    "This is the basic variable in the FlipJump standard library — a bit "
+    "(can contain only 0 or 1).\n\n"
+    "You can't place it as you would any other standard library macro, "
+    "because \"running\" this line is undefined behavior. The `bit` (and "
+    "`bit.vec`) should be placed in a region of memory that won't ever be "
+    "executed — typically below `stl.loop`."
+)
+
+_HEX_DESCRIPTION = (
+    "This is another basic variable in the FlipJump standard library — "
+    "a hex nibble (can contain only 0 through 15).\n\n"
+    "You can't place it as you would any other standard library macro, "
+    "because \"running\" this line is undefined behavior. The `hex` (and "
+    "`hex.vec`) should be placed in a region of memory that won't ever be "
+    "executed — typically below `stl.loop`."
+)
+
+
+_DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
+    # ---------- bit memory primitives ----------
+    ("bit.bit", 0): _BIT_DESCRIPTION,
+    ("bit.bit", 1): _BIT_DESCRIPTION,
+    ("bit.vec", 1): _BIT_DESCRIPTION,
+    ("bit.vec", 2): _BIT_DESCRIPTION,
+
+    # ---------- hex memory primitives ----------
+    ("hex.hex", 0): _HEX_DESCRIPTION,
+    ("hex.hex", 1): _HEX_DESCRIPTION,
+    ("hex.vec", 1): _HEX_DESCRIPTION,
+    ("hex.vec", 2): _HEX_DESCRIPTION,
+
+    # ---------- bit specific intent (source had no useful summary) ----------
+    ("bit.ptr_inc", 1):
+        "`ptr += 2w` — advance a w-wide bit-pointer by one dw-aligned word.",
+
+    ("bit.mul.mul_add_if", 4):
+        "`if flag: dst[:n] += src[:n]` — conditional in-place add. `flag` is a bit.",
+
+    # ---------- bit.cmp (auto-extracted summary "jump to:" is unhelpful) ----------
+    ("bit.cmp", 5):
+        "Three-way compare on bits: jumps to `lt` if `a<b`, `eq` if `a==b`, "
+        "`gt` if `a>b`. `a`, `b` are bits; `lt`, `eq`, `gt` are addresses.",
+    ("bit.cmp", 6):
+        "Three-way compare on n-bit vectors: jumps to `lt` if `a[:n]<b[:n]`, "
+        "`eq` if equal, `gt` if `a[:n]>b[:n]`.",
+
+    # ---------- bit/div (user requested major update) ----------
+    ("bit.idiv", 5):
+        "Signed integer division: `q = a/b`, `r = a%b` with "
+        "`sign(r)==sign(a)`. Jumps to `end` if `b==0`. `q`, `a`, `b`, `r` "
+        "are bit[:n]. Wasteful in space — prefer `hex.idiv` for serious work.",
+    ("bit.div", 5):
+        "Unsigned integer division: `q = a/b`, `r = a%b`. Jumps to `end` "
+        "if `b==0`. `q`, `a`, `b`, `r` are bit[:n]. Wasteful in space — "
+        "prefer `hex.div` for serious work.",
+    ("bit.div.div_step", 5):
+        "One step of bit-level long division: `R[0] ^= N`; then if "
+        "`R[:n] >= D[:n]`, do `R -= D` and toggle `Q[0]`. The inner loop "
+        "of `bit.div` / `bit.idiv`.",
+    ("bit.idiv_loop", 5):
+        "Compact signed integer division (slower than `bit.idiv`, but uses "
+        "much less program space): `q = a/b`, `r = a%b` with "
+        "`sign(r)==sign(a)`. Jumps to `end` if `b==0`.",
+    ("bit.div_loop", 5):
+        "Compact unsigned integer division (slower than `bit.div`, but uses "
+        "much less program space): `q = a/b`, `r = a%b`. Jumps to `end` "
+        "if `b==0`.",
+
+    # ---------- hex/math wrappers without source docs ----------
+    ("hex.add.add_constant_with_leading_zeros", 4):
+        "Internal helper for `hex.add_constant`: strips `const`'s trailing "
+        "zero nibbles, then adds the result back into `dst[:n]` at the "
+        "matching nibble offset (so the trailing zeros are skipped instead "
+        "of materialised as wasted-work additions).",
+    ("hex.add.add_hex_shifted_constant", 4):
+        "Wrapper around the 5-arity `add_hex_shifted_constant`: derives "
+        "`n_const = (#const + 3) / 4` automatically so the caller doesn't "
+        "have to compute the constant's nibble length.",
+    ("hex.sub.sub_constant_with_leading_zeros", 4):
+        "Internal helper for `hex.sub_constant`: strips `const`'s trailing "
+        "zero nibbles, then subtracts the result from `dst[:n]` at the "
+        "matching nibble offset (so the trailing zeros are skipped instead "
+        "of materialised as wasted-work subtractions).",
+    ("hex.sub.sub_hex_shifted_constant", 4):
+        "Wrapper around the 5-arity `sub_hex_shifted_constant`: derives "
+        "`n_const = (#const + 3) / 4` automatically so the caller doesn't "
+        "have to compute the constant's nibble length.",
+
+    # ---------- hex/math_basic ----------
+    # add_count_bits — get the bare-parens "(n=2 ...)" out of the summary.
+    # The natural summary IS the indented intent line in source; the
+    # prefer-indented heuristic picks it up after this fix.
+
+    # ---------- hex/tables_init (better summaries) ----------
+    # NOTE: the user said the /1 form's auto-extracted summary is fine
+    # ("A table. When jumping to entry d - it xors d into dst, and jumps
+    # to hex.tables.ret"). The /3 form is the generic n-entry helper.
+    ("hex.init", 0):
+        "Initialise every truth table that the `hex.*` macros depend on. "
+        "Call this exactly once at program start; bundled into "
+        "`stl.startup_and_init_all`. Don't mix with any `hex.*.init` "
+        "calls — those would redeclare the same tables.",
+    ("hex.tables.init_shared", 0):
+        "Allocate the shared `ret` and `res` symbols used by every "
+        "table-driven hex operation. Called once by `hex.init`.",
+    ("hex.tables.init_all", 0):
+        "Inner macro of `hex.init` — emits every per-operation "
+        "`hex.*.init` block (or, and, mul, cmp, add, sub) in sequence. "
+        "Don't call this directly; use `hex.init`.",
+    ("hex.tables.clean_table_entry__table", 3):
+        "Generic n-entry XOR-dispatch table: when jumped to at entry `d`, "
+        "XORs `d` into `dst` and jumps to `ret`. `n` must be a power of "
+        "two and the table must be `(1<<n)`-padded. The 1-arity form "
+        "specialises this to `n=256, ret=hex.tables.ret`.",
+    ("hex.tables.jump_to_table_entry", 3):
+        "Dispatch into a 256-padded table at entry `(src<<4 | dst)`, "
+        "then XOR `hex.tables.res` into `dst` on return. The hot path of "
+        "every table-driven hex operation.",
+
+    # ---------- hex/mul ----------
+    ("hex.mul.clear_carry", 0):
+        "Reset the per-multiplication carry-tracking variable to zero. "
+        "Called by `hex.add_mul` at the start and end of each addition "
+        "step (and transitively by `hex.mul` through `hex.add_mul`).",
+
+    # ---------- hex/div (user requested) ----------
+    ("hex.div", 7):
+        "Unsigned integer division: `q = a/b`, `r = a%b`. Jumps to `div0` "
+        "if `b==0`. `q`, `a` are hex[:n]; `r`, `b` are hex[:nb].",
+    ("hex.idiv", 8):
+        "Signed integer division with configurable remainder convention "
+        "(`rem_opt`: 0 = `sign(r)==sign(b)`, Python-style floor division; "
+        "1 = `sign(r)==sign(a)`, C-style truncation; 2 = remainder always "
+        "positive). Jumps to `div0` if `b==0`. `q`, `a` are hex[:n]; "
+        "`r`, `b` are hex[:nb].",
+
+    # ---------- ptrlib ----------
+    # stl.get_sp source has `//   dst[:w/4] = sp` (indented) — the
+    # prefer-indented heuristic picks it after this fix. No override needed.
+
+    # ---------- hex/pointers ----------
+    ("hex.pointers.ptr_init", 0):
+        "One-time initialisation of the pointer dispatch infrastructure: "
+        "global opcodes, pointer-copies, and the read-byte handling "
+        "table. Must be called once at program start, immediately after "
+        "`stl.startup` so the read-byte table lands at address 256. "
+        "Bundled into `stl.startup_and_init_all`.",
+    ("hex.pointers.read_byte_from_inners_ptrs", 0):
+        "`hex.pointers.read_byte[:2] = *ptr` — read one byte through the "
+        "currently-set flip/jump pointers. Use after "
+        "`hex.pointers.set_flip_and_jump_pointers`.",
+}
+
+
+def _apply_override(macro_fq: str, macro_arity: int, info: "DocInfo") -> None:
+    """Replace `info.description` with the hand-authored override if one
+    exists for this macro. Non-destructive on all other DocInfo fields
+    (complexity, @requires, etc. still come from the auto-extracted
+    source).
+
+    Note: override strings BYPASS the auto-backticking / directive-marking
+    pipeline that `_extract_fields` runs on regular description lines.
+    Authors of new overrides must hand-backtick code tokens (`bit.add`,
+    `dst[:n]`, …) themselves. Paragraph breaks use `\\n\\n` as usual.
+    """
+    override = _DESCRIPTION_OVERRIDES.get((macro_fq, macro_arity))
+    if override is not None:
+        info.description = override
+
+
+# IGNORECASE for the "Time" / "Space" prefix words because the upstream
+# STL has typos like `// TIme Complexity: ...` in bit/cond_jumps.fj.
+_TIME_RE = re.compile(r"^\s*Time\s+Complexity\s*:\s*(.+?)\s*$", re.IGNORECASE)
+_SPACE_RE = re.compile(r"^\s*Space\s+Complexity\s*:\s*(.+?)\s*$", re.IGNORECASE)
+# `Size Complexity: N` is the upstream STL's convention for "this
+# macro's expansion takes N bits/ops of program space" — semantically
+# equivalent to Space Complexity. Used by `bit.bit`, `hex.hex`,
+# `hex.tables_init.clean_table_entry__table`, `hex.pointers.ptr_init`,
+# `hex.add_count_bits`'s carry table macros, etc.
+_SIZE_RE = re.compile(r"^\s*Size\s+Complexity\s*:\s*(.+?)\s*$", re.IGNORECASE)
 # Bare `Complexity` line: the colon is OPTIONAL because the upstream
 # STL uses both `Complexity: 9@-7` and `Complexity 9@-7` (see e.g.
 # bit/pointers.fj, bit/output.fj). The captured value is then validated
 # downstream to ensure it actually looks like a complexity expression
 # (so plain prose starting with the word "Complexity" doesn't match).
-_BOTH_RE = re.compile(r"^\s*Complexity\s*:?\s+(.+?)\s*$")
+_BOTH_RE = re.compile(r"^\s*Complexity\s*:?\s+(.+?)\s*$", re.IGNORECASE)
 # Short forms `Time: X` / `Space: X` appear in many STL files as
 # follow-ups to a leading `Complexity:` line — see e.g. bit/memory.fj
 # where `// Complexity: 2@+5` is followed by `// Space: 3@+8`,
 # meaning the first was Time and the second is Space.
-_TIME_SHORT_RE = re.compile(r"^\s*Time\s*:\s*(.+?)\s*$")
-_SPACE_SHORT_RE = re.compile(r"^\s*Space\s*:\s*(.+?)\s*$")
+_TIME_SHORT_RE = re.compile(r"^\s*Time\s*:\s*(.+?)\s*$", re.IGNORECASE)
+_SPACE_SHORT_RE = re.compile(r"^\s*Space\s*:\s*(.+?)\s*$", re.IGNORECASE)
 _REQUIRES_RE = re.compile(r"^\s*@requires\s+(.+?)\s*$")
 _OUTPUT_PARAM_RE = re.compile(r"^\s*@output-param\s+(\w+)\s*:\s*(.+?)\s*$")
 _BANNER_RE = re.compile(r"^\s*[-=*~]{3,}")
@@ -156,7 +351,9 @@ def attach_docs(source: str, file: FileNode) -> dict[int, DocInfo]:
 
     for macro in file.macros:
         doc_lines = _collect_doc_block(lines, macro.start_line)
-        result[id(macro)] = _extract_fields(doc_lines)
+        info = _extract_fields(doc_lines)
+        _apply_override(macro.fq_name, macro.arity, info)
+        result[id(macro)] = info
 
     for const in file.constants:
         doc_lines = _collect_doc_block(lines, const.start_line)
@@ -222,6 +419,12 @@ def _extract_fields(doc_lines: list[str]) -> DocInfo:
             complexity_entries.append(("time", m.group(1)))
             continue
         m = _SPACE_RE.match(body)
+        if m:
+            complexity_entries.append(("space", m.group(1)))
+            continue
+        # `Size Complexity:` is the upstream STL's term for what we
+        # call space complexity. Same kind, different label.
+        m = _SIZE_RE.match(body)
         if m:
             complexity_entries.append(("space", m.group(1)))
             continue
