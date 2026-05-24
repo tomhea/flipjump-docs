@@ -426,8 +426,8 @@ ns bit {
 }
 """
     info = _doc(src, "bit")
-    # Override fires: description is the hand-authored bit description.
-    assert "basic variable" in info.description
+    # Override fires: arity-1 form has the "with initial value" summary.
+    assert "Binary variable with initial value" in info.description
     assert "won't ever be executed" in info.description
     # Complexity still comes from the source.
     assert info.space_complexity == "1"
@@ -441,6 +441,49 @@ def test_description_override_carries_through_short_desc():
 
     summary = _short_desc(_DESCRIPTION_OVERRIDES[("bit.ptr_inc", 1)])
     assert "ptr += 2w" in summary
+
+
+def test_memory_primitive_overrides_split_by_arity():
+    """Polish batch 4: bit.bit/0 and bit.bit/1 should have distinct
+    file-page summaries (the 0-arity declaration vs the 1-arity initial-
+    value form). Same for hex.hex/0 vs hex.hex/1.
+    """
+    from fj_stl_extract.renderer import _short_desc
+    from fj_stl_extract.doc_attach import _DESCRIPTION_OVERRIDES
+
+    assert _short_desc(_DESCRIPTION_OVERRIDES[("bit.bit", 0)]) == "Binary variable."
+    assert _short_desc(_DESCRIPTION_OVERRIDES[("bit.bit", 1)]) == \
+        "Binary variable with initial value."
+    assert _short_desc(_DESCRIPTION_OVERRIDES[("hex.hex", 0)]) == \
+        "Hexadecimal variable."
+    assert _short_desc(_DESCRIPTION_OVERRIDES[("hex.hex", 1)]) == \
+        "Hexadecimal variable with initial value."
+
+
+def test_like_prefix_normalized_to_effectively():
+    """Polish batch 4: upstream `// Like: sp++` / `// like: *ptr;`
+    intent-prefix is normalized to `Effectively:` for readability."""
+    src = """\
+ns hex {
+    //   Like:  sp++
+    def sp_inc {}
+}
+"""
+    info = _doc(src, "sp_inc")
+    assert "Effectively:" in info.description
+    assert "Like:" not in info.description
+
+
+def test_like_prefix_normalization_preserves_prose():
+    """The `Like:` substitution only matches when followed by a colon,
+    so prose words like 'I would like to ...' are left alone."""
+    from fj_stl_extract.doc_attach import _normalize_like_prefix
+    # No colon → no substitution.
+    assert _normalize_like_prefix("I would like to test this") == \
+        "I would like to test this"
+    # Colon-form → substituted.
+    assert _normalize_like_prefix("like: x++") == "Effectively: x++"
+    assert _normalize_like_prefix("Like: y--") == "Effectively: y--"
 
 
 def test_requires_collected_as_list():
