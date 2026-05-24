@@ -19,38 +19,21 @@ The STL is organised as three top-level namespaces:
 Each file below corresponds to one `.fj` source file under [`flipjump/stl/`](https://github.com/tomhea/flip-jump/tree/main/flipjump/stl). The order matches `conf.json` — the canonical compilation order — so dependencies appear before their consumers.
 
 ```{toctree}
-:maxdepth: 1
+:maxdepth: 2
 
 runlib
 casting
 ptrlib
-bit/memory
-bit/logics
-bit/cond_jumps
-bit/shifts
-bit/math
-bit/input
-bit/output
-bit/casting
-bit/pointers
-bit/mul
-bit/div
-hex/memory
-hex/logics
-hex/math
-hex/math_basic
-hex/shifts
-hex/cond_jumps
-hex/tables_init
-hex/input
-hex/output
-hex/mul
-hex/div
-hex/pointers/basic_pointers
-hex/pointers/xor_to_pointer
-hex/pointers/xor_from_pointer
-hex/pointers/read_pointers
-hex/pointers/write_pointers
-hex/pointers/stack
-hex/pointers/pointer_arithmetics
+bit/index
+hex/index
+```
+
+## All macros at a glance
+
+The [all-macros index](all_macros.md) lists every macro across every namespace in one searchable table, sorted alphabetically by fully-qualified name. Useful when you know roughly what you want but not which file it lives in.
+
+```{toctree}
+:hidden:
+
+all_macros
 ```

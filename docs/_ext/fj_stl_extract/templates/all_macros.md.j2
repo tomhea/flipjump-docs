@@ -1,0 +1,9 @@
+# All macros — alphabetical index
+
+Every macro in the standard library, sorted by fully-qualified name and arity. {{ rows | length }} entries total.
+
+| Macro | File | Time | Space | Summary |
+|---|---|---|---|---|
+{% for r in rows -%}
+| [`{{ r.fq_name }}/{{ r.arity }}`]({{ r.link }}) | `{{ r.file_rel }}` | {% if r.time %}`{{ r.time }}`{% endif %} | {% if r.space %}`{{ r.space }}`{% endif %} | {{ r.short }} |
+{% endfor %}

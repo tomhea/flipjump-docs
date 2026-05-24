@@ -262,7 +262,12 @@ def test_macro_page_has_orphan_frontmatter(tmp_path):
     src = "ns stl { def loop {} }"
     render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
     page = (tmp_path / "runlib" / "loop--0.md").read_text(encoding="utf-8")
-    assert page.startswith("---\norphan: true\n---")
+    # Orphan flag still leads the frontmatter; additional html_meta
+    # entries (page description for SEO) may follow before the closing
+    # delimiter.
+    assert page.startswith("---\norphan: true\n")
+    # And the frontmatter is closed somewhere in the file.
+    assert "\n---\n" in page
 
 
 def test_complexity_links_to_glossary(tmp_path):

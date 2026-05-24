@@ -17,10 +17,10 @@ _EXT_DIR = (Path(__file__).resolve().parent.parent / "_ext")
 if str(_EXT_DIR) not in sys.path:
     sys.path.insert(0, str(_EXT_DIR))
 
-project = "FlipJump"
+project = "FlipJump Docs"
 author = "Tom Herman"
 copyright = "2026, Tom Herman"  # noqa: A001 — shadows Sphinx config slot
-release = "0.4"
+release = "1.1"
 
 extensions = [
     "myst_parser",
@@ -30,15 +30,34 @@ extensions = [
     "fj_stl_extract",
 ]
 
+# Algolia DocSearch integration. Currently using Sphinx's built-in
+# client-side search; flipping `algolia_enabled = True` here (after
+# applying to https://docsearch.algolia.com/apply) and filling in the
+# three credential values will hand search off to Algolia DocSearch,
+# which gives instant fuzzy results across the whole site.
+#
+# Application status: pending. Once approved Algolia provides:
+#   appId, apiKey, indexName
+# Filling them in and setting algolia_enabled = True wires the
+# search box (via `_extra/algolia.js` and the layout override below).
+algolia_enabled = False
+algolia_app_id = ""
+algolia_api_key = ""
+algolia_index_name = "flipjump-docs"
+
 # sphinx-sitemap needs the canonical URL to write absolute links.
 html_baseurl = "https://fjdocs.tomhe.app/"
 # Single-language, single-version site — strip the default `{lang}/{version}/`
 # prefix that sphinx-sitemap inserts for multi-translation projects.
 sitemap_url_scheme = "{link}"
 
-# sphinx-notfound-page: serve a friendly 404 with site nav. Default
-# settings work; we just enable the extension above.
+# sphinx-notfound-page: serve a friendly 404 with site nav. We supply
+# our own 404.md so the page has personality instead of just an
+# auto-generated "not found" line.
 notfound_urls_prefix = "/"
+notfound_template = "page.html"
+notfound_pagename = "404"
+notfound_no_urls_prefix = False
 
 # Path resolution: from docs/source/conf.py, the flip-jump submodule
 # sits at ../../vendor/flip-jump/flipjump/stl. This is the default in
@@ -67,7 +86,7 @@ exclude_patterns: list[str] = [
 ]
 
 html_theme = "furo"
-html_title = "FlipJump"
+html_title = "FlipJump Docs"
 # `_static/` holds custom CSS and theme assets that Sphinx serves under
 # /_static/. `_extra/` ships verbatim to the deploy root (sibling of
 # /index.html) — used for robots.txt and the favicons.

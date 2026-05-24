@@ -1,6 +1,15 @@
 ---
 orphan: true
+myst:
+  html_meta:
+    description: "{{ (macro.doc.description.split('\n')[0] | replace('`', '') | replace('"', "'"))[:160] if macro.doc.description else macro.fq_name }}"
 ---
+
+```{raw} html
+<script type="application/ld+json">
+{{ json_ld }}
+</script>
+```
 
 # `{{ macro.fq_name }}` {%- if has_overloads %} (arity {{ macro.arity }}){%- endif %}
 
@@ -51,6 +60,21 @@ This macro exposes labels into the caller's scope via `>`:
 {% endfor %}
 {%- endif %}
 
+{% if source_body -%}
+## Source
+
+```{eval-rst}
+.. container:: toggle, toggle-hidden
+
+   .. admonition:: Click to view the macro body
+      :class: dropdown
+
+      .. code-block:: fj
+
+{{ source_body | indent(width=9, first=True) }}
+```
+{%- endif %}
+
 {% if depends_on -%}
 ## Depends on
 
@@ -65,4 +89,23 @@ This macro exposes labels into the caller's scope via `>`:
 {% for user in used_by -%}
 - [`{{ user.fq_name }}{% if user.has_overloads %}/{{ user.arity }}{% endif %}`]({{ user.link }})
 {% endfor %}
+{%- endif %}
+
+{% if callsites -%}
+## Example uses
+
+{% for cs in callsites -%}
+- [`{{ cs.caller_fq }}`](https://github.com/tomhea/flip-jump/blob/main/flipjump/stl/{{ cs.file_rel }}.fj#L{{ cs.start_line }}-L{{ cs.end_line }}) in `{{ cs.file_rel }}.fj`
+{% endfor %}
+{%- endif %}
+
+{% if prev_macro or next_macro -%}
+---
+
+{% if prev_macro -%}
+← Previous: [`{{ prev_macro.fq_name }}{% if prev_macro.has_overloads %}/{{ prev_macro.arity }}{% endif %}`]({{ prev_macro.link }})
+{% endif %}
+{%- if next_macro %}
+Next: [`{{ next_macro.fq_name }}{% if next_macro.has_overloads %}/{{ next_macro.arity }}{% endif %}`]({{ next_macro.link }}) →
+{%- endif %}
 {%- endif %}

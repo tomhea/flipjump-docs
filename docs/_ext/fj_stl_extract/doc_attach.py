@@ -32,7 +32,12 @@ __all__ = ["DocInfo", "attach_docs"]
 
 _TIME_RE = re.compile(r"^\s*Time\s+Complexity\s*:\s*(.+?)\s*$")
 _SPACE_RE = re.compile(r"^\s*Space\s+Complexity\s*:\s*(.+?)\s*$")
-_BOTH_RE = re.compile(r"^\s*Complexity\s*:\s*(.+?)\s*$")
+# Bare `Complexity` line: the colon is OPTIONAL because the upstream
+# STL uses both `Complexity: 9@-7` and `Complexity 9@-7` (see e.g.
+# bit/pointers.fj, bit/output.fj). The captured value is then validated
+# downstream to ensure it actually looks like a complexity expression
+# (so plain prose starting with the word "Complexity" doesn't match).
+_BOTH_RE = re.compile(r"^\s*Complexity\s*:?\s+(.+?)\s*$")
 # Short forms `Time: X` / `Space: X` appear in many STL files as
 # follow-ups to a leading `Complexity:` line — see e.g. bit/memory.fj
 # where `// Complexity: 2@+5` is followed by `// Space: 3@+8`,
@@ -42,6 +47,27 @@ _SPACE_SHORT_RE = re.compile(r"^\s*Space\s*:\s*(.+?)\s*$")
 _REQUIRES_RE = re.compile(r"^\s*@requires\s+(.+?)\s*$")
 _OUTPUT_PARAM_RE = re.compile(r"^\s*@output-param\s+(\w+)\s*:\s*(.+?)\s*$")
 _BANNER_RE = re.compile(r"^\s*[-=*~]{3,}")
+
+# Validator: a complexity value should contain at least one
+# "complexity-y" character (digit, @, operator, paren). This blocks
+# false-positive matches like `Complexity is the runtime cost` from
+# being captured as an ambiguous complexity entry.
+_COMPLEXITY_CHARS = set("0123456789@()+-*^~/#")
+
+
+def _looks_like_complexity_value(value: str) -> bool:
+    return any(c in _COMPLEXITY_CHARS for c in value)
+
+
+# A line is "prose" if it contains at least one pair of adjacent
+# 3+-letter lowercase English words joined by whitespace only.
+# Pseudocode like `dst += src` or `a, b = b, a` won't match (no
+# adjacent multi-letter word pairs); English like "prints x[:n] as
+# an unsigned decimal number" matches readily ("as an", "an unsigned",
+# "unsigned decimal", "decimal number"). Used to keep indented prose
+# lines like the `//   prints x[:n] as ...` summary in bit.print_dec_uint
+# from being wrapped entirely in inline-code backticks.
+_PROSE_LINE_RE = re.compile(r"\b[A-Za-z]{3,}\s+[A-Za-z]{3,}\b")
 
 # An "inline code" token in prose: identifier-prefixed run containing at
 # least one operator-only char (`= + - * / % & | ^ < > ! [`). Identifier
@@ -62,8 +88,7 @@ def _backtick_inline_code(text: str) -> str:
 
     URLs (anything containing `://`) are skipped via a callback so a
     raw `https://...` or a `[label](url)` Markdown link doesn't get
-    its scheme/path backticked into garbage. (CR-ist finding on the
-    polish batch.)
+    its scheme/path backticked into garbage.
     """
     def repl(m: re.Match) -> str:
         token = m.group(1)
@@ -71,6 +96,32 @@ def _backtick_inline_code(text: str) -> str:
             return token
         return f"`{token}`"
     return _INLINE_CODE_RE.sub(repl, text)
+
+
+# Known assembler directive words. When a description mentions one of
+# these as a bare word it gets turned into a placeholder marker; the
+# renderer's per-page context provides the relative link target and
+# replaces the markers with real Markdown links. We can't write absolute
+# `[wflip](/language/directives.md)` here because relative links from a
+# nested macro page differ in depth.
+_DIRECTIVE_WORDS = frozenset({"wflip", "pad", "reserve", "segment"})
+_DIRECTIVE_RE = re.compile(
+    r"(?<![`\w./])(" + "|".join(sorted(_DIRECTIVE_WORDS)) + r")\b(?![`\w.])"
+)
+
+
+def _mark_directives(text: str) -> str:
+    """Mark `wflip` / `pad` / `reserve` / `segment` mentions for
+    later replacement by the renderer with a cross-page link.
+
+    Uses a zero-width-space-wrapped sentinel
+    `​{DIRECTIVE:name}​` so the later replacement step
+    is unambiguous even if the same name appears inside backticks
+    or URLs.
+    """
+    return _DIRECTIVE_RE.sub(
+        lambda m: f"​{{DIRECTIVE:{m.group(1)}}}​", text
+    )
 
 
 @dataclass
@@ -175,7 +226,7 @@ def _extract_fields(doc_lines: list[str]) -> DocInfo:
             complexity_entries.append(("space", m.group(1)))
             continue
         m = _BOTH_RE.match(body)
-        if m:
+        if m and _looks_like_complexity_value(m.group(1)):
             complexity_entries.append(("ambiguous", m.group(1)))
             continue
         m = _TIME_SHORT_RE.match(body)
@@ -246,16 +297,20 @@ def _extract_fields(doc_lines: list[str]) -> DocInfo:
             out_lines.append("")
             continue
         # Pseudocode convention: a `//   x++` line (i.e. two or more
-        # leading spaces inside the comment) is wrapped entirely in
-        # inline code so the operators don't get treated as prose.
-        # All other lines get per-token inline-code wrapping.
+        # leading spaces inside the comment) is USUALLY wrapped
+        # entirely in inline code so the operators don't get treated
+        # as prose. BUT some macros use indentation for prose intent
+        # summaries (e.g. `//   prints x[:n] as an unsigned decimal
+        # number` in bit.print_dec_uint). Detect prose via the
+        # adjacent-multi-letter-words heuristic and treat those as
+        # prose with per-token inline-code instead.
         stripped_left = part.lstrip(" ")
         leading = part[: len(part) - len(stripped_left)]
         content = stripped_left.rstrip()
-        if len(leading) >= 2:
+        if len(leading) >= 2 and not _PROSE_LINE_RE.search(content):
             transformed = leading + "`" + content + "`"
         else:
-            transformed = _backtick_inline_code(content)
+            transformed = leading + _mark_directives(_backtick_inline_code(content))
         out_lines.append(transformed + "  ")
     info.description = "\n".join(out_lines)
     return info

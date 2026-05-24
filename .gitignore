@@ -13,6 +13,7 @@ docs/source/stl/casting/
 docs/source/stl/ptrlib/
 docs/source/stl/bit/
 docs/source/stl/hex/
+docs/source/stl/all_macros.md
 docs/source/stl/.render_manifest.json
 # Legacy from earlier milestones — kept as a guard if anyone has a
 # stale checkout that still has files here:

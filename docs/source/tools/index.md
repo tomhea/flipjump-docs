@@ -33,19 +33,17 @@ Brainfuck-to-FlipJump compiler with four optimisation passes.
 :::
 
 :::{grid-item-card} 🐙 flip-jump on GitHub
-:link: https://github.com/tomhea/flip-jump
+:link: flip-jump
+:link-type: doc
 
 The upstream repo: language implementation, standard library, example programs, tests, the GitHub wiki.
-
-**[github.com/tomhea/flip-jump →](https://github.com/tomhea/flip-jump)**
 :::
 
 :::{grid-item-card} 📜 esolangs.org/FlipJump
-:link: https://esolangs.org/wiki/FlipJump
+:link: esolangs
+:link-type: doc
 
 Background commentary on the language design, computational classification, and links to related single-instruction languages.
-
-**[esolangs.org/wiki/FlipJump →](https://esolangs.org/wiki/FlipJump)**
 :::
 
 ::::
@@ -56,6 +54,8 @@ Background commentary on the language design, computational classification, and 
 ide
 c2fj
 bf2fj
+flip-jump
+esolangs
 ```
 
 The IDE is the easiest entry point — no local install. The compilers (c2fj, bf2fj) let you target FlipJump from higher-level languages. The upstream repo is where issues, contributions, and the language implementation live. The esolangs page is the canonical external reference.
