@@ -44,7 +44,7 @@ notfound_urls_prefix = "/"
 # sits at ../../vendor/flip-jump/flipjump/stl. This is the default in
 # the extension; declared here for visibility.
 fj_stl_root = "../../vendor/flip-jump/flipjump/stl"
-fj_stl_output = "stl/_generated"
+fj_stl_output = "stl"
 
 myst_enable_extensions = [
     "colon_fence",
@@ -68,13 +68,14 @@ exclude_patterns: list[str] = [
 
 html_theme = "furo"
 html_title = "FlipJump"
-# No `html_static_path` for now — we have no custom CSS or JS to ship.
-# Furo provides its own theme assets. If you ever add a custom.css,
-# put it in docs/source/_static/ and re-add `html_static_path = ["_static"]`.
-#
-# `_extra/` ships verbatim to the deploy root (sibling of /index.html).
-# Used for robots.txt.
+# `_static/` holds custom CSS and theme assets that Sphinx serves under
+# /_static/. `_extra/` ships verbatim to the deploy root (sibling of
+# /index.html) — used for robots.txt and the favicons.
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 html_extra_path = ["_extra"]
+
+html_favicon = "_extra/favicon.ico"
 
 # Furo theme options: a permanent "Try the IDE" button in the top
 # right of every page, plus an Edit-on-GitHub link.
@@ -98,6 +99,11 @@ html_theme_options = {
         'fj.tomhe.app</a>'
     ),
 }
+
+# Apple-touch-icon + 32x32 PNG favicon: Furo refuses to be extended
+# via layout.html, and `html_favicon` covers only the .ico. The
+# fj_stl_extract Sphinx extension wires the additional <link> tags
+# via the `html-page-context` event — see sphinx_ext.py.
 
 # Custom Pygments style matching the FlipJump IDE's `fj-dark` theme so
 # code blocks here look identical to code in the editor at fj.tomhe.app.

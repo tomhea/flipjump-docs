@@ -18,9 +18,9 @@ The STL ships three startup macros, each progressively heavier:
 
 | Macro | Initialises | When to use |
 |---|---|---|
-| [`stl.startup`](../stl/_generated/file--runlib.md) | only the `IO` opcode | output only; no pointers, no hex |
-| [`stl.startup_and_init_pointers`](../stl/_generated/file--runlib.md) | IO + bit/hex pointer tables | when you use `bit.pointers.*` or `hex.pointers.*` |
-| [`stl.startup_and_init_all`](../stl/_generated/file--runlib.md) | IO + pointers + hex truth tables + stack | the safe default; what tutorials use |
+| [`stl.startup`](../stl/runlib.md) | only the `IO` opcode | output only; no pointers, no hex |
+| [`stl.startup_and_init_pointers`](../stl/runlib.md) | IO + bit/hex pointer tables | when you use `bit.pointers.*` or `hex.pointers.*` |
+| [`stl.startup_and_init_all`](../stl/runlib.md) | IO + pointers + hex truth tables + stack | the safe default; what tutorials use |
 
 `stl.startup_and_init_all` is ~7000 operations on a default-width build but only runs once. Use it unless you have a specific reason not to.
 
@@ -46,7 +46,7 @@ A FlipJump "variable" is a region of program memory that the code reads via self
 - **Bit variables** — defined via `def bit_var @ x { x: .bit }`. One bit per variable; ops are simple but each takes O(1) FlipJump operations.
 - **Hex variables** — defined via `def hex_var @ x { x: .hex }`. Four bits per variable; arithmetic is table-driven and runs in fewer operations per nibble.
 
-Vector forms (`bit.vec n, value`, `hex.vec n, value`) allocate `n` consecutive variables for arrays. Both are defined inside their respective namespaces in [`bit/memory.fj`](../stl/_generated/file--bit-memory.md) and [`hex/memory.fj`](../stl/_generated/file--hex-memory.md), so the call site reads `bit.vec` / `hex.vec` — NOT `bit.bit.vec` or `hex.hex.vec`.
+Vector forms (`bit.vec n, value`, `hex.vec n, value`) allocate `n` consecutive variables for arrays. Both are defined inside their respective namespaces in [`bit/memory.fj`](../stl/bit/memory.md) and [`hex/memory.fj`](../stl/hex/memory.md), so the call site reads `bit.vec` / `hex.vec` — NOT `bit.bit.vec` or `hex.hex.vec`.
 
 ## Naming patterns
 

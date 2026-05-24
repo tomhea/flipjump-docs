@@ -37,7 +37,7 @@ wflip 0x80, 0x42       // XOR the word at 0x80 with 0x42
 wflip 0x80, 0x42, end  // and then jump to label `end`
 ```
 
-`wflip` is the building block that lets a macro modify another instruction's jump-address at assembly time. It generates a sequence of single-bit `a;b` instructions that, when executed, XOR `VAL` into the word at `DST`. The `stl.wflip_macro` macro family wraps this directive — see [`stl.wflip_macro`](../stl/_generated/macro--stl.wflip_macro--2.md).
+`wflip` is the building block that lets a macro modify another instruction's jump-address at assembly time. It generates a sequence of single-bit `a;b` instructions that, when executed, XOR `VAL` into the word at `DST`. The `stl.wflip_macro` macro family wraps this directive — see [`stl.wflip_macro`](../stl/runlib/wflip_macro--2.md).
 
 ## When to reach for these
 

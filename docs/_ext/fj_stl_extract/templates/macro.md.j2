@@ -18,20 +18,17 @@ def {{ macro.name }}
 {%- if macro.exports_labels %} > {{ macro.exports_labels | join(", ") }}{% endif %} { ... }
 ```
 
-**Defined in** [{{ file_rel }}.fj]({{ file_link }}) — lines {{ macro.start_line }}–{{ macro.end_line }}. \
-[View source on GitHub](https://github.com/tomhea/flip-jump/blob/main/flipjump/stl/{{ file_rel }}.fj#L{{ macro.start_line }}-L{{ macro.end_line }})
-(link tracks upstream `main`; if the submodule is ever pinned to a different ref, M9 needs a follow-up to read the actual SHA at build time).
+**Defined in** [{{ file_rel }}.fj]({{ file_link }}) — lines {{ macro.start_line }}–{{ macro.end_line }} ([view on GitHub](https://github.com/tomhea/flip-jump/blob/main/flipjump/stl/{{ file_rel }}.fj#L{{ macro.start_line }}-L{{ macro.end_line }})).
 
 {% if macro.doc.time_complexity or macro.doc.space_complexity -%}
 ## Complexity
 
-{% if macro.doc.time_complexity -%}
-- **Time**: `{{ macro.doc.time_complexity }}`
-{% endif -%}
-{% if macro.doc.space_complexity -%}
-- **Space**: `{{ macro.doc.space_complexity }}`
+{% if macro.doc.time_complexity %}- **Time**: `{{ macro.doc.time_complexity }}`
 {% endif %}
-See the [complexity glossary](../../language/complexity.md) for what `@`, `w`, `dw`, `dbit`, `n` mean.
+{%- if macro.doc.space_complexity %}- **Space**: `{{ macro.doc.space_complexity }}`
+{% endif %}
+
+See the [complexity glossary]({{ glossary_link }}) for what `@`, `w`, `dw`, `dbit`, `n` mean.
 {%- endif %}
 
 {% if macro.doc.requires -%}

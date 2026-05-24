@@ -16,7 +16,7 @@ ns stl {
 }
 ```
 
-After running `stl.startup`, the address of `IO` is known to the rest of the program. To emit a `0` bit, flip the low bit of `IO`; to emit a `1`, flip a different bit. The STL's [`stl.output_bit`](../stl/_generated/macro--stl.output_bit--1.md) and [`stl.output_char`](../stl/_generated/macro--stl.output_char--1.md) wrap the bit-flipping pattern.
+After running `stl.startup`, the address of `IO` is known to the rest of the program. To emit a `0` bit, flip the low bit of `IO`; to emit a `1`, flip a different bit. The STL's [`stl.output_bit`](../stl/runlib/output_bit--1.md) and [`stl.output_char`](../stl/runlib/output_char--1.md) wrap the bit-flipping pattern.
 
 Bytes are output **LSB first** by flipping eight consecutive bits in sequence.
 
@@ -34,9 +34,9 @@ The runtime reloads the next bit on each read. End-of-input is signalled by the 
 
 User code rarely touches the IO opcode directly. The STL provides:
 
-- Output: see the per-file page [`runlib.fj`](../stl/_generated/file--runlib.md) for `stl.output_bit`, `stl.output_char`, `stl.output`.
-- Bit-level input/output: [`bit/input.fj`](../stl/_generated/file--bit-input.md) and [`bit/output.fj`](../stl/_generated/file--bit-output.md).
-- Hex-level input/output: [`hex/input.fj`](../stl/_generated/file--hex-input.md) and [`hex/output.fj`](../stl/_generated/file--hex-output.md).
+- Output: see the per-file page [`runlib.fj`](../stl/runlib.md) for `stl.output_bit`, `stl.output_char`, `stl.output`.
+- Bit-level input/output: [`bit/input.fj`](../stl/bit/input.md) and [`bit/output.fj`](../stl/bit/output.md).
+- Hex-level input/output: [`hex/input.fj`](../stl/hex/input.md) and [`hex/output.fj`](../stl/hex/output.md).
 
 A complete "Hello, World!" program is just `stl.startup_and_init_all` + `stl.output "Hello\n"` + `stl.loop`. See the [Hello World walkthrough](../getting-started/hello-world.md) for a guided tour.
 

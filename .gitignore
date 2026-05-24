@@ -1,5 +1,21 @@
 # Sphinx build output
 docs/_build/
+
+# Auto-generated STL documentation. The renderer writes per-file and
+# per-macro pages directly under docs/source/stl/ (mirroring the
+# upstream conf.json layout); only docs/source/stl/index.md is
+# hand-written. See docs/_ext/fj_stl_extract/renderer.py.
+docs/source/stl/runlib.md
+docs/source/stl/casting.md
+docs/source/stl/ptrlib.md
+docs/source/stl/runlib/
+docs/source/stl/casting/
+docs/source/stl/ptrlib/
+docs/source/stl/bit/
+docs/source/stl/hex/
+docs/source/stl/.render_manifest.json
+# Legacy from earlier milestones — kept as a guard if anyone has a
+# stale checkout that still has files here:
 docs/source/stl/_generated/
 
 # Python

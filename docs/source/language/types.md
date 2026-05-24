@@ -3,7 +3,7 @@
 FlipJump has no static type system. The four identifiers below are visually highlighted as "types" in the IDE and on this site, but they are actually:
 
 - `w` — a compile-time constant set by the assembler.
-- `dw`, `dbit` — assembly-time constants defined in [`runlib.fj`](../stl/_generated/file--runlib.md).
+- `dw`, `dbit` — assembly-time constants defined in [`runlib.fj`](../stl/runlib.md).
 - `bit` — a namespace name (`ns bit { ... }`) and an STL convention for single-bit data.
 
 (w)=
@@ -40,7 +40,7 @@ dbit = w + #w  // bit distance from a variable's start to its bit/hex value
 
 `bit` is not a language keyword. It serves two roles:
 
-1. The name of the top-level namespace for bit-level STL operations: [`ns bit { ... }`](../stl/_generated/file--bit-memory.md).
+1. The name of the top-level namespace for bit-level STL operations: [`ns bit { ... }`](../stl/bit/memory.md).
 2. The conventional name of a one-bit storage slot, defined as `def bit { ... }` inside that namespace.
 
 ```fj
