@@ -146,7 +146,7 @@ def test_short_time_form_extracts_correctly():
     the STL — bit/memory.fj uses it as a follow-up to a leading
     `Complexity:` line."""
     src = """\
-ns stl {
+ns testns {
     // Time: 4@+1
     def loop {}
 }
@@ -158,7 +158,7 @@ ns stl {
 
 def test_short_space_form_extracts_correctly():
     src = """\
-ns stl {
+ns testns {
     // Space: 3@+8
     def loop {}
 }
@@ -482,6 +482,79 @@ ns hex {
     assert "Like:" not in info.description
 
 
+def test_validator_accepts_single_letter_complexity():
+    """Polish batch 5: `// Complexity: n` for bit.not/2 was silently
+    dropped because the old validator required at least one
+    `0-9@()+-*^~/#` character. Single-letter values like n, w, nb are
+    now accepted; obvious prose like 'is the runtime cost' is still
+    rejected via the 3+letter-pair prose-detector."""
+    from fj_stl_extract.doc_attach import _looks_like_complexity_value
+    assert _looks_like_complexity_value("n") is True
+    assert _looks_like_complexity_value("w") is True
+    assert _looks_like_complexity_value("nb") is True
+    assert _looks_like_complexity_value("2@+4") is True
+    assert _looks_like_complexity_value("n(3@+30)") is True
+    # Prose still rejected.
+    assert _looks_like_complexity_value("is the runtime cost") is False
+    assert _looks_like_complexity_value("depends on the input") is False
+
+
+def test_bare_complexity_n_parses_end_to_end():
+    """Regression for bit.not/2: source `// Complexity: n` should now
+    populate BOTH time and space complexity via the ambiguous-resolution
+    logic (no other complexity entries → ambiguous fills both fields)."""
+    src = """\
+ns bit {
+    // Complexity: n
+    //   dst[:n] ^= (1<<n)-1
+    def not n, dst {}
+}
+"""
+    info = _doc(src, "not")
+    assert info.time_complexity == "n"
+    assert info.space_complexity == "n"
+
+
+def test_complexity_overrides_fill_when_missing():
+    """Polish batch 5: time/space complexity overrides fill empty
+    fields without replacing source-supplied values."""
+    src = """\
+ns hex {
+    //   if hex==0 goto l0, else continue.
+    def if0 hex, l0 @ l1 {}
+}
+"""
+    info = _doc(src, "if0")
+    # Source has no Complexity line → override fills both.
+    assert info.time_complexity == "@-1"
+    assert info.space_complexity == "@+15"
+
+
+def test_complexity_overrides_do_not_overwrite_source():
+    """Overrides only fill empty fields. If source has an explicit
+    Complexity comment, it wins."""
+    src = """\
+ns hex {
+    // Time Complexity: 999
+    // Space Complexity: 888
+    def if0 hex, l0 @ l1 {}
+}
+"""
+    info = _doc(src, "if0")
+    # Source values win over the (@-1, @+15) override.
+    assert info.time_complexity == "999"
+    assert info.space_complexity == "888"
+
+
+def test_data_declaration_complexity_override():
+    """Memory-primitive overrides use the literal string
+    '0 (data declaration)' for Time, communicating that the macro
+    is data, not executable code."""
+    from fj_stl_extract.doc_attach import _TIME_COMPLEXITY_OVERRIDES
+    assert _TIME_COMPLEXITY_OVERRIDES[("bit.bit", 0)] == "0 (data declaration)"
+    assert _TIME_COMPLEXITY_OVERRIDES[("hex.vec", 2)] == "0 (data declaration)"
+
+
 def test_like_prefix_normalization_preserves_prose():
     """The `Like:` substitution is line-anchored, so mid-sentence
     usages (with OR without a colon) are left alone. Regression for
@@ -603,8 +676,9 @@ dw = 2 * w
 # ---------- empty doc ----------
 
 def test_def_with_no_doc_yields_empty_docinfo():
-    src = "ns stl { def loop {} }"
-    info = _doc(src, "loop")
+    # `testns` (not `stl`) to avoid triggering any real-macro overrides.
+    src = "ns testns { def someop {} }"
+    info = _doc(src, "someop")
     assert info.is_empty
     assert info.description == ""
     assert info.time_complexity is None

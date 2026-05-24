@@ -168,24 +168,31 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
         "if `b==0`.",
 
     # ---------- hex/math wrappers without source docs ----------
+    # `n_const` (in the complexity expressions for these four) is the
+    # minimal `hex.vec` size needed to store `const` — i.e. the number
+    # of hex nibbles required to represent its value.
     ("hex.add.add_constant_with_leading_zeros", 4):
         "Internal helper for `hex.add_constant`: strips `const`'s trailing "
         "zero nibbles, then adds the result back into `dst[:n]` at the "
         "matching nibble offset (so the trailing zeros are skipped instead "
-        "of materialised as wasted-work additions).",
+        "of materialised as wasted-work additions).\n\n"
+        "`n_const` is the minimal `hex.vec` size needed to store `const`.",
     ("hex.add.add_hex_shifted_constant", 4):
         "Wrapper around the 5-arity `add_hex_shifted_constant`: derives "
         "`n_const = (#const + 3) / 4` automatically so the caller doesn't "
-        "have to compute the constant's nibble length.",
+        "have to compute the constant's nibble length.\n\n"
+        "`n_const` is the minimal `hex.vec` size needed to store `const`.",
     ("hex.sub.sub_constant_with_leading_zeros", 4):
         "Internal helper for `hex.sub_constant`: strips `const`'s trailing "
         "zero nibbles, then subtracts the result from `dst[:n]` at the "
         "matching nibble offset (so the trailing zeros are skipped instead "
-        "of materialised as wasted-work subtractions).",
+        "of materialised as wasted-work subtractions).\n\n"
+        "`n_const` is the minimal `hex.vec` size needed to store `const`.",
     ("hex.sub.sub_hex_shifted_constant", 4):
         "Wrapper around the 5-arity `sub_hex_shifted_constant`: derives "
         "`n_const = (#const + 3) / 4` automatically so the caller doesn't "
-        "have to compute the constant's nibble length.",
+        "have to compute the constant's nibble length.\n\n"
+        "`n_const` is the minimal `hex.vec` size needed to store `const`.",
 
     # ---------- hex/math_basic ----------
     # add_count_bits — get the bare-parens "(n=2 ...)" out of the summary.
@@ -274,6 +281,169 @@ def _apply_override(macro_fq: str, macro_arity: int, info: "DocInfo") -> None:
         info.description = override
 
 
+# -----------------------------------------------------------------------
+# Time / space complexity overrides.
+#
+# Keyed by (fq_name, arity). Fills the corresponding DocInfo field ONLY
+# when it's still None — overrides supplement source, they don't replace
+# upstream complexity comments. So if upstream later adds a Complexity:
+# line to one of these macros, we'll silently start picking it up
+# without needing to delete the override entry first.
+#
+# Use cases:
+#   - Wrappers that delegate to a documented macro (copy from callee).
+#   - Memory declarations where time isn't meaningful (use the literal
+#     string "0 (data declaration)").
+#   - 1-time init macros (use the literal string "O(1)").
+#   - Inner helpers whose complexity is implicit in the caller.
+# -----------------------------------------------------------------------
+
+_TIME_COMPLEXITY_OVERRIDES: dict[tuple[str, int], str] = {
+    # ---------- data declarations (time is N/A by design) ----------
+    ("bit.bit", 0): "0 (data declaration)",
+    ("bit.bit", 1): "0 (data declaration)",
+    ("bit.vec", 1): "0 (data declaration)",
+    ("bit.vec", 2): "0 (data declaration)",
+    ("bit.str", 1): "0 (data declaration)",
+    ("hex.hex", 0): "0 (data declaration)",
+    ("hex.hex", 1): "0 (data declaration)",
+    ("hex.vec", 1): "0 (data declaration)",
+    ("hex.vec", 2): "0 (data declaration)",
+
+    # ---------- one-time init macros (called once at startup) ----------
+    ("bit.pointers.ptr_init", 0): "O(1)",
+    ("hex.init", 0): "O(1)",
+    ("hex.pointers.ptr_init", 0): "O(1)",
+    ("hex.pointers.stack_init", 1): "O(1)",
+    ("stl.stack_init", 1): "O(1)",
+
+    # ---------- compile-time conditional emitters ----------
+    # Upstream `runlib.fj:106` has a banner `// Complexity: 1` above
+    # this group, but blank lines separate it from each `def` so the
+    # doc-attach rule doesn't carry it through.
+    ("stl.comp_if", 3): "1",
+    ("stl.comp_if0", 2): "1",
+    ("stl.comp_if1", 2): "1",
+    ("stl.comp_flip_if", 2): "1",
+    ("stl.skip", 0): "1",
+
+    # ---------- misc ----------
+    # stl.loop's body is `;$ - dw` — an unconditional self-jump that
+    # never terminates. "Halt" is the conventional FJ word for this
+    # pattern (programs commonly end with stl.loop), but the literal
+    # behaviour is an infinite self-loop.
+    ("stl.loop", 0): "∞ (infinite self-loop)",
+    ("hex.tables.init_shared", 0): "0",
+    ("hex.tables.init_all", 0): "1",
+
+    # Helpers / inner-loop pieces (manually derived).
+    # NOTE: `bit.print_hex_uint.print_digit/2` time is the
+    # author-verified value 29@+34. The upstream file has a non-
+    # standard banner `//Comp: 29@+44` above `ns print_hex_uint`
+    # (bit/output.fj:90) which would give a different number — the
+    # banner is not picked up by the extractor (typo for `Complexity`
+    # and not adjacent to the def), and the 29@+34 value here was
+    # provided by the author after re-deriving from the body.
+    ("bit._.print_str_one_char", 2): "16@+32",
+    ("bit.print_hex_uint.print_digit", 2): "29@+34",
+    ("bit.pointers.advance_by_one_and_flip__ptr_wflip", 2): "@+n+1",
+    ("hex.pointers.advance_by_one_and_flip__ptr_wflip", 2): "@+n+1",
+
+    # ---------- wrappers that delegate to a documented macro ----------
+    # Copy the wrapped macro's complexity (the wrapper adds only labels,
+    # no extra FJ ops).
+    ("hex.if0", 2): "@-1",          # wraps hex.if/3
+    ("hex.if1", 2): "@-1",          # wraps hex.if/3
+    ("hex.if0", 3): "n(@-1)",       # wraps hex.if/4
+    ("hex.if1", 3): "n(@-1)",       # wraps hex.if/4
+    ("hex.dec.step", 2): "@",       # wraps hex.dec1/3
+    ("hex.inc.step", 2): "@",       # wraps hex.inc1/3
+    ("hex.cmp.cmp_eq_next", 4): "3@+8",  # wraps hex.cmp/5
+    ("hex.add.add_constant_with_leading_zeros", 4): "n_const(4@+12) + 5@+2",
+    ("hex.add.add_hex_shifted_constant", 4): "n_const(4@+12) + 5@+2",
+    ("hex.sub.sub_constant_with_leading_zeros", 4): "n_const(4@+12) + 5@+2",
+    ("hex.sub.sub_hex_shifted_constant", 4): "n_const(4@+12) + 5@+2",
+}
+
+
+_SPACE_COMPLEXITY_OVERRIDES: dict[tuple[str, int], str] = {
+    # ---------- data declarations ----------
+    # /1 and /2 entries also listed defensively: their source files have
+    # `// Size Complexity:` comments that the extractor currently picks
+    # up, so these overrides are no-ops today (the "fill only when None"
+    # rule skips them). They keep us covered if the upstream doc comment
+    # ever drops or moves.
+    ("bit.bit", 0): "1",
+    ("bit.bit", 1): "1",
+    ("bit.vec", 1): "n",
+    ("bit.vec", 2): "n",
+    ("bit.str", 1): "(#str+15)&(~7)  // which is (strlen(str)+1)*8",
+    ("hex.hex", 0): "1",
+    ("hex.hex", 1): "1",
+    ("hex.vec", 1): "n",
+    ("hex.vec", 2): "n",
+
+    # ---------- compile-time emitters ----------
+    ("stl.comp_if", 3): "1",
+    ("stl.comp_if0", 2): "1",
+    ("stl.comp_if1", 2): "1",
+    ("stl.comp_flip_if", 2): "1",
+    ("stl.skip", 0): "1",
+
+    # ---------- misc ----------
+    ("stl.loop", 0): "1",
+    ("hex.tables.init_shared", 0): "2",
+    ("hex.tables.init_all", 0): "6464+@",
+
+    # Helpers / inner-loop pieces.
+    ("bit._.print_str_one_char", 2): "16@+32",
+    ("bit.print_hex_uint.print_digit", 2): "35@+57",
+    ("bit.pointers.advance_by_one_and_flip__ptr_wflip", 2): "@+n+1",
+    ("hex.pointers.advance_by_one_and_flip__ptr_wflip", 2): "@+n+1",
+
+    # ---------- wrappers ----------
+    ("hex.if0", 2): "@+15",
+    ("hex.if1", 2): "@+15",
+    ("hex.if0", 3): "n(@+15)",
+    ("hex.if1", 3): "n(@+15)",
+    ("hex.dec.step", 2): "1.5@+13",
+    ("hex.inc.step", 2): "1.5@+13",
+    ("hex.cmp.cmp_eq_next", 4): "3@+30",
+    ("hex.add.add_constant_with_leading_zeros", 4):
+        "n_const(2.5@+39) + (dst_n - hex_shift)(1.5@+13) + 4@+29",
+    ("hex.add.add_hex_shifted_constant", 4):
+        "n_const(2.5@+39) + (dst_n - hex_shift)(1.5@+13) + 4@+29",
+    ("hex.sub.sub_constant_with_leading_zeros", 4):
+        "n_const(2.5@+39) + (dst_n - hex_shift)(1.5@+13) + 4@+29",
+    ("hex.sub.sub_hex_shifted_constant", 4):
+        "n_const(2.5@+39) + (dst_n - hex_shift)(1.5@+13) + 4@+29",
+}
+
+
+def _apply_complexity_overrides(
+    macro_fq: str, macro_arity: int, info: "DocInfo",
+) -> None:
+    """Fill `info.time_complexity` and `info.space_complexity` from the
+    override dicts, but ONLY when the field is still None. This means
+    overrides supplement source rather than replacing it — if upstream
+    later adds a Complexity: line, the override silently steps aside.
+
+    Note: override values BYPASS `_looks_like_complexity_value` — they
+    go straight to the field. So override strings can include narrative
+    annotations like `"0 (data declaration)"` or `"∞ (infinite self-
+    loop)"` that the validator would reject as prose.
+    """
+    key = (macro_fq, macro_arity)
+    if info.time_complexity is None:
+        t = _TIME_COMPLEXITY_OVERRIDES.get(key)
+        if t is not None:
+            info.time_complexity = t
+    if info.space_complexity is None:
+        s = _SPACE_COMPLEXITY_OVERRIDES.get(key)
+        if s is not None:
+            info.space_complexity = s
+
+
 # Upstream STL convention: `// like: *ptr;` / `// Like: sp++` introduces
 # a pseudocode intent line. "Effectively:" reads as English in our docs.
 #
@@ -320,15 +490,18 @@ _REQUIRES_RE = re.compile(r"^\s*@requires\s+(.+?)\s*$")
 _OUTPUT_PARAM_RE = re.compile(r"^\s*@output-param\s+(\w+)\s*:\s*(.+?)\s*$")
 _BANNER_RE = re.compile(r"^\s*[-=*~]{3,}")
 
-# Validator: a complexity value should contain at least one
-# "complexity-y" character (digit, @, operator, paren). This blocks
-# false-positive matches like `Complexity is the runtime cost` from
-# being captured as an ambiguous complexity entry.
-_COMPLEXITY_CHARS = set("0123456789@()+-*^~/#")
+# Validator: reject obvious prose; accept everything else.
+#
+# Earlier this required at least one of `0-9@()+-*^~/#` to be present,
+# but that wrongly rejected legitimate single-letter values like `n`
+# and `w` — e.g. `bit.not/2`'s `// Complexity: n` was silently dropped.
+# The 3+-letter prose-pair regex catches the false-positive cases we
+# actually care about, like `Complexity is the runtime cost`.
+_COMPLEXITY_PROSE_RE = re.compile(r"\b[A-Za-z]{3,}\s+[A-Za-z]{3,}\b")
 
 
 def _looks_like_complexity_value(value: str) -> bool:
-    return any(c in _COMPLEXITY_CHARS for c in value)
+    return not _COMPLEXITY_PROSE_RE.search(value)
 
 
 # A line is "prose" if it contains at least one pair of adjacent
@@ -430,6 +603,7 @@ def attach_docs(source: str, file: FileNode) -> dict[int, DocInfo]:
         doc_lines = _collect_doc_block(lines, macro.start_line)
         info = _extract_fields(doc_lines)
         _apply_override(macro.fq_name, macro.arity, info)
+        _apply_complexity_overrides(macro.fq_name, macro.arity, info)
         info.description = _normalize_like_prefix(info.description)
         result[id(macro)] = info
 
