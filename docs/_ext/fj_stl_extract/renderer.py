@@ -117,7 +117,13 @@ def _short_desc(text: str) -> str:
 
     lines = [line.rstrip() for line in text.split("\n")]
 
-    # Pass 1: prefer indented (2+ space) lines.
+    # Pass 1: prefer indented (2+ space) lines. The STL's convention
+    # is `// @Assumes: ...` / `// Note: ...` flush-left, then the
+    # intent summary on a `//   ...` indented line. We want the
+    # intent line on the file page, not the warning. Caveat: if a
+    # macro ever puts a non-intent parenthetical on the first indented
+    # line ahead of the real intent, this picks the wrong one — no
+    # such case exists in the current STL.
     for line in lines:
         if line.startswith("  ") and line.strip():
             return _truncate(line.strip(), 140)

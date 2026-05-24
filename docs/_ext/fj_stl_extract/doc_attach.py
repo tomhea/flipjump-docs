@@ -80,7 +80,7 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
 
     # ---------- bit specific intent (source had no useful summary) ----------
     ("bit.ptr_inc", 1):
-        "`ptr[:n] += 2w` — advance a bit-pointer by one dw-aligned word.",
+        "`ptr += 2w` — advance a w-wide bit-pointer by one dw-aligned word.",
 
     ("bit.mul.mul_add_if", 4):
         "`if flag: dst[:n] += src[:n]` — conditional in-place add. `flag` is a bit.",
@@ -117,17 +117,19 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
 
     # ---------- hex/math wrappers without source docs ----------
     ("hex.add.add_constant_with_leading_zeros", 4):
-        "Internal helper for `hex.add_constant`: shifts `const` left by "
-        "the appropriate number of nibbles (skipping its trailing zeros) "
-        "and adds it into `dst[:n]`.",
+        "Internal helper for `hex.add_constant`: strips `const`'s trailing "
+        "zero nibbles, then adds the result back into `dst[:n]` at the "
+        "matching nibble offset (so the trailing zeros are skipped instead "
+        "of materialised as wasted-work additions).",
     ("hex.add.add_hex_shifted_constant", 4):
         "Wrapper around the 5-arity `add_hex_shifted_constant`: derives "
         "`n_const = (#const + 3) / 4` automatically so the caller doesn't "
         "have to compute the constant's nibble length.",
     ("hex.sub.sub_constant_with_leading_zeros", 4):
-        "Internal helper for `hex.sub_constant`: shifts `const` left by "
-        "the appropriate number of nibbles (skipping its trailing zeros) "
-        "and subtracts it from `dst[:n]`.",
+        "Internal helper for `hex.sub_constant`: strips `const`'s trailing "
+        "zero nibbles, then subtracts the result from `dst[:n]` at the "
+        "matching nibble offset (so the trailing zeros are skipped instead "
+        "of materialised as wasted-work subtractions).",
     ("hex.sub.sub_hex_shifted_constant", 4):
         "Wrapper around the 5-arity `sub_hex_shifted_constant`: derives "
         "`n_const = (#const + 3) / 4` automatically so the caller doesn't "
@@ -167,7 +169,8 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
     # ---------- hex/mul ----------
     ("hex.mul.clear_carry", 0):
         "Reset the per-multiplication carry-tracking variable to zero. "
-        "Called by `hex.mul` between independent multiplications.",
+        "Called by `hex.add_mul` at the start and end of each addition "
+        "step (and transitively by `hex.mul` through `hex.add_mul`).",
 
     # ---------- hex/div (user requested) ----------
     ("hex.div", 7):
@@ -175,9 +178,10 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
         "if `b==0`. `q`, `a` are hex[:n]; `r`, `b` are hex[:nb].",
     ("hex.idiv", 8):
         "Signed integer division with configurable remainder convention "
-        "(`rem_opt`: 0 = `sign(r)==sign(b)` like C; 1 = `sign(r)==sign(a)` "
-        "like Python; 2 = remainder always positive). Jumps to `div0` "
-        "if `b==0`. `q`, `a` are hex[:n]; `r`, `b` are hex[:nb].",
+        "(`rem_opt`: 0 = `sign(r)==sign(b)`, Python-style floor division; "
+        "1 = `sign(r)==sign(a)`, C-style truncation; 2 = remainder always "
+        "positive). Jumps to `div0` if `b==0`. `q`, `a` are hex[:n]; "
+        "`r`, `b` are hex[:nb].",
 
     # ---------- ptrlib ----------
     # stl.get_sp source has `//   dst[:w/4] = sp` (indented) — the
@@ -201,7 +205,13 @@ def _apply_override(macro_fq: str, macro_arity: int, info: "DocInfo") -> None:
     """Replace `info.description` with the hand-authored override if one
     exists for this macro. Non-destructive on all other DocInfo fields
     (complexity, @requires, etc. still come from the auto-extracted
-    source)."""
+    source).
+
+    Note: override strings BYPASS the auto-backticking / directive-marking
+    pipeline that `_extract_fields` runs on regular description lines.
+    Authors of new overrides must hand-backtick code tokens (`bit.add`,
+    `dst[:n]`, …) themselves. Paragraph breaks use `\\n\\n` as usual.
+    """
     override = _DESCRIPTION_OVERRIDES.get((macro_fq, macro_arity))
     if override is not None:
         info.description = override

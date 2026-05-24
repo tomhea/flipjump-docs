@@ -440,7 +440,7 @@ def test_description_override_carries_through_short_desc():
     from fj_stl_extract.doc_attach import _DESCRIPTION_OVERRIDES
 
     summary = _short_desc(_DESCRIPTION_OVERRIDES[("bit.ptr_inc", 1)])
-    assert "ptr[:n] += 2w" in summary
+    assert "ptr += 2w" in summary
 
 
 def test_requires_collected_as_list():
