@@ -112,32 +112,33 @@ ns stl {
 
 
 def test_ambiguous_complexity_after_time_becomes_space():
-    """`Time Complexity: A` then `Complexity: B` — the B becomes Space
-    (since the surrounding context already pinned Time)."""
+    """`Time Complexity: 4@+12` then `Complexity: 2@+8` — the 2@+8 becomes Space
+    (since the surrounding context already pinned Time). Real complexity
+    values used because the parser validates value shape."""
     src = """\
 ns stl {
-    // Time Complexity: A
-    // Complexity: B
+    // Time Complexity: 4@+12
+    // Complexity: 2@+8
     def loop {}
 }
 """
     info = _doc(src, "loop")
-    assert info.time_complexity == "A"
-    assert info.space_complexity == "B"
+    assert info.time_complexity == "4@+12"
+    assert info.space_complexity == "2@+8"
 
 
 def test_ambiguous_complexity_after_space_becomes_time():
-    """Mirror: `Space Complexity: S` then `Complexity: B` → B is Time."""
+    """Mirror: `Space Complexity: 2@+8` then `Complexity: 4@+12` → time."""
     src = """\
 ns stl {
-    // Space Complexity: S
-    // Complexity: B
+    // Space Complexity: 2@+8
+    // Complexity: 4@+12
     def loop {}
 }
 """
     info = _doc(src, "loop")
-    assert info.space_complexity == "S"
-    assert info.time_complexity == "B"
+    assert info.space_complexity == "2@+8"
+    assert info.time_complexity == "4@+12"
 
 
 def test_short_time_form_extracts_correctly():
@@ -214,6 +215,27 @@ ns bit {
     assert "`x[:n]++`" in info.description
 
 
+def test_indented_prose_line_not_wrapped_as_code():
+    """Polish batch 2 #2: an indented line that LOOKS like prose
+    (e.g. `//   prints x[:n] as an unsigned decimal number`) should
+    NOT be wrapped entirely in backticks. The bit.print_dec_uint
+    convention uses 2-space indent for intent summaries even though
+    they're prose, not code."""
+    src = """\
+ns bit {
+    //   prints x[:n] as an unsigned decimal number (without leading zeros).
+    def print_dec_uint n, x {}
+}
+"""
+    info = _doc(src, "print_dec_uint")
+    # The whole line should NOT be a code block.
+    assert "`prints x[:n] as an unsigned decimal number" not in info.description
+    # But `x[:n]` should still be backticked inline.
+    assert "`x[:n]`" in info.description
+    # The natural English ("unsigned decimal number") survives unchanged.
+    assert "unsigned decimal number" in info.description
+
+
 def test_plain_dotted_name_not_backticked_inline():
     """Polish #1: a token like `bit.add` (no operators, just dots)
     should NOT be backticked — it would conflict with cross-page
@@ -269,15 +291,63 @@ def test_triple_complexity_block_explicit_space_wins():
     the explicit value into the still-empty space slot."""
     src = """\
 ns stl {
-    // Time Complexity: A
-    // Complexity: B
-    // Space Complexity: C
+    // Time Complexity: 4@
+    // Complexity: 2@+1
+    // Space Complexity: 8@+4
     def loop {}
 }
 """
     info = _doc(src, "loop")
-    assert info.time_complexity == "A"
-    assert info.space_complexity == "C"
+    assert info.time_complexity == "4@"
+    assert info.space_complexity == "8@+4"
+
+
+def test_complexity_without_colon_is_captured():
+    """Polish batch 2 #1: the upstream STL uses BOTH `Complexity: X`
+    and bare `Complexity X` (no colon) — e.g. bit/pointers.fj uses
+    `// Complexity 2w@ + 2@`. Both forms must be captured."""
+    src = """\
+ns stl {
+    // Complexity 9@-7
+    def f {}
+}
+"""
+    info = _doc(src, "f")
+    assert info.time_complexity == "9@-7"
+    assert info.space_complexity == "9@-7"
+
+
+def test_complexity_without_colon_followed_by_space_short_form():
+    """Real bit/pointers.fj pattern: bare `Complexity 2w@ + 2@` (the
+    ambiguous form) with no later explicit Time/Space → both fields
+    filled."""
+    src = """\
+ns bit {
+    // Complexity 2w@ + 2@
+    def ptr_inc {}
+}
+"""
+    info = _doc(src, "ptr_inc")
+    assert info.time_complexity == "2w@ + 2@"
+    assert info.space_complexity == "2w@ + 2@"
+
+
+def test_complexity_prose_not_captured():
+    """The colonless `Complexity` matcher must NOT consume English
+    prose like `// Complexity is the runtime cost`. The value-shape
+    validator (digit/@/operator required) blocks this."""
+    src = """\
+ns stl {
+    // Complexity is the runtime cost of this macro.
+    def f {}
+}
+"""
+    info = _doc(src, "f")
+    # Should NOT be treated as a complexity entry — falls through to
+    # description.
+    assert info.time_complexity is None
+    assert info.space_complexity is None
+    assert "Complexity is the runtime cost" in info.description
 
 
 def test_requires_collected_as_list():

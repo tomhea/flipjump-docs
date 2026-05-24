@@ -1,0 +1,18 @@
+# `{{ ns_short }}` — namespace overview
+
+{% if ns_intro -%}
+{{ ns_intro }}
+{% endif %}
+
+## Contents
+
+```{toctree}
+:maxdepth: 1
+
+{% for f in direct_files -%}
+{{ f.slug }}
+{% endfor %}
+{%- for sub in sub_namespaces %}
+{{ sub.slug }}/index
+{% endfor %}
+```

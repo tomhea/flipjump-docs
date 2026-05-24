@@ -1,33 +1,50 @@
 /*
  * Custom CSS for fjdocs.tomhe.app.
  *
- * Overrides Furo's default narrow content column. The default
- * `--content-padding-bigger` adds wide left/right whitespace that
- * wastes screen real estate on wide displays.
+ * Furo's default sidebar drawers use `width: calc(50% - 26em)` so on
+ * wide screens they expand into the available whitespace, leaving
+ * an empty band INSIDE the drawer to the left of the sidebar's text
+ * (and likewise to the right of the on-this-page TOC). The visible
+ * effect is two large empty "margins" on either side of the page.
+ *
+ * Cap both drawers to their content width and let the central
+ * `.main` flex container fill the rest. The content stays readable
+ * by capping its own max-width.
  */
 
-:root {
-  --sidebar-width: 17em;
-  --page-width: min(100% - 2em, 80rem);
+@media (min-width: 67em) {
+  .sidebar-drawer {
+    width: 17em !important;
+    flex-shrink: 0;
+  }
+
+  .toc-drawer {
+    width: 16em !important;
+    flex-shrink: 0;
+  }
+
+  /* `.main` is the central flex item between the two drawers. Let
+     it fill the remaining width so there's no empty band on either
+     side of the page. */
+  .main {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* `.content` sits inside `.main` and held a fixed 46em width by
+     default. Centre it within `.main` with a generous max-width so
+     prose lines stay readable while the page no longer has empty
+     gutters. */
+  .content {
+    margin: 0 auto;
+    max-width: 64em !important;
+    width: 100% !important;
+  }
 }
 
-body {
-  --content-padding: 1.5rem;
-  --content-padding--small: 1rem;
-}
-
-/* Tighten the central column so content uses more of the screen.
-   The default Furo `--content-width-light` is about 46em; bumping
-   it to 64em removes the visual gutter on either side without
-   making line lengths uncomfortable on prose-heavy pages. */
-.content {
-  max-width: 64em;
-}
-
-/* On very wide screens (≥ 96em), give the sidebar slightly more room
-   and let the content breathe but stay readable. */
+/* On very wide screens, let the content breathe but stay readable. */
 @media (min-width: 96em) {
   .content {
-    max-width: 72em;
+    max-width: 72em !important;
   }
 }

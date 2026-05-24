@@ -35,6 +35,13 @@ The single instruction, expression syntax, macros, namespaces, I/O.
 Auto-generated reference for every macro in `flipjump/stl/`.
 :::
 
+:::{grid-item-card} 🍳 Cookbook
+:link: cookbook/index
+:link-type: doc
+
+Ten short recipes: hello world, echo, decimal print, branches, loops, swap, add, function call.
+:::
+
 :::{grid-item-card} 📝 Examples
 :link: examples/index
 :link-type: doc
@@ -61,8 +68,10 @@ The browser IDE, c2fj (C compiler), bf2fj (Brainfuck compiler).
 :hidden:
 
 getting-started/index
+cookbook/index
 language/index
 stl/index
+reference/index
 examples/index
 tools/index
 ```
