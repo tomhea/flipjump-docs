@@ -46,37 +46,37 @@ __all__ = ["DocInfo", "attach_docs"]
 # (handled by the renderer) to preserve line breaks in HTML.
 # -----------------------------------------------------------------------
 
-_BIT_DESCRIPTION = (
-    "This is the basic variable in the FlipJump standard library — a bit "
-    "(can contain only 0 or 1).\n\n"
+_PLACEMENT_WARNING = (
     "You can't place it as you would any other standard library macro, "
-    "because \"running\" this line is undefined behavior. The `bit` (and "
-    "`bit.vec`) should be placed in a region of memory that won't ever be "
-    "executed — typically below `stl.loop`."
+    "because \"running\" this line is undefined behavior. All `bit`, "
+    "`bit.vec`, `hex`, and `hex.vec` declarations should be placed in a "
+    "region of memory that won't ever be executed — typically below "
+    "`stl.loop`."
 )
 
-_HEX_DESCRIPTION = (
-    "This is another basic variable in the FlipJump standard library — "
-    "a hex nibble (can contain only 0 through 15).\n\n"
-    "You can't place it as you would any other standard library macro, "
-    "because \"running\" this line is undefined behavior. The `hex` (and "
-    "`hex.vec`) should be placed in a region of memory that won't ever be "
-    "executed — typically below `stl.loop`."
-)
+
+def _with_warning(summary: str) -> str:
+    """Per-arity memory-primitive summary + the shared placement warning.
+
+    The renderer's `_short_desc` picks the first non-blank line for the
+    file-page bullet, so the leading summary is what shows up there; the
+    warning paragraph below shows on the macro page only.
+    """
+    return f"{summary}\n\n{_PLACEMENT_WARNING}"
 
 
 _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
-    # ---------- bit memory primitives ----------
-    ("bit.bit", 0): _BIT_DESCRIPTION,
-    ("bit.bit", 1): _BIT_DESCRIPTION,
-    ("bit.vec", 1): _BIT_DESCRIPTION,
-    ("bit.vec", 2): _BIT_DESCRIPTION,
+    # ---------- bit memory primitives (arity-specific summaries) ----------
+    ("bit.bit", 0): _with_warning("Binary variable."),
+    ("bit.bit", 1): _with_warning("Binary variable with initial value."),
+    ("bit.vec", 1): _with_warning("Binary vector."),
+    ("bit.vec", 2): _with_warning("Binary vector with initial value."),
 
-    # ---------- hex memory primitives ----------
-    ("hex.hex", 0): _HEX_DESCRIPTION,
-    ("hex.hex", 1): _HEX_DESCRIPTION,
-    ("hex.vec", 1): _HEX_DESCRIPTION,
-    ("hex.vec", 2): _HEX_DESCRIPTION,
+    # ---------- hex memory primitives (arity-specific summaries) ----------
+    ("hex.hex", 0): _with_warning("Hexadecimal variable."),
+    ("hex.hex", 1): _with_warning("Hexadecimal variable with initial value."),
+    ("hex.vec", 1): _with_warning("Hexadecimal vector."),
+    ("hex.vec", 2): _with_warning("Hexadecimal vector with initial value."),
 
     # ---------- bit specific intent (source had no useful summary) ----------
     ("bit.ptr_inc", 1):
@@ -85,13 +85,65 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
     ("bit.mul.mul_add_if", 4):
         "`if flag: dst[:n] += src[:n]` — conditional in-place add. `flag` is a bit.",
 
-    # ---------- bit.cmp (auto-extracted summary "jump to:" is unhelpful) ----------
+    ("bit.neg", 2):
+        "`x[:n] = -x[:n]`",
+
+    # ---------- bit/hex ptr_flip / ptr_jump (source intent line is just `like: ...`) ----------
+    ("bit.ptr_flip", 1):
+        "Flip the bit whose address is stored in `ptr`. Effectively `*ptr;`.",
+    ("bit.ptr_jump", 1):
+        "Jump to the address stored in `ptr`. Effectively `;*ptr`.",
+    ("hex.ptr_flip", 1):
+        "Flip the bit whose address is stored in `ptr`. Effectively `*ptr;`.",
+    ("hex.ptr_jump", 1):
+        "Jump to the address stored in `ptr`. Effectively `;*ptr`.",
+
+    # ---------- bit.cmp + cmp_next_eq (auto "jump to:" is just a header) ----------
     ("bit.cmp", 5):
         "Three-way compare on bits: jumps to `lt` if `a<b`, `eq` if `a==b`, "
         "`gt` if `a>b`. `a`, `b` are bits; `lt`, `eq`, `gt` are addresses.",
     ("bit.cmp", 6):
         "Three-way compare on n-bit vectors: jumps to `lt` if `a[:n]<b[:n]`, "
         "`eq` if equal, `gt` if `a[:n]>b[:n]`.",
+    ("bit._.cmp_next_eq", 4):
+        "1 step of multi-bit `bit.cmp`.",
+
+    # ---------- hex.cmp family (mirrors the bit.cmp overrides above) ----------
+    ("hex.cmp", 5):
+        "Three-way compare on hex nibbles: jumps to `lt` if `a<b`, `eq` if "
+        "`a==b`, `gt` if `a>b`. `a`, `b` are hexes; `lt`, `eq`, `gt` are addresses.",
+    ("hex.cmp", 6):
+        "Three-way compare on n-nibble hex vectors: jumps to `lt` if "
+        "`a[:n]<b[:n]`, `eq` if equal, `gt` if `a[:n]>b[:n]`.",
+    ("hex.cmp.cmp_eq_next", 4):
+        "1 step of multi-nibble `hex.cmp`.",
+
+    # ---------- empty-source macros (zero doc lines above the `def`) ----------
+    ("bit._.print_str_one_char", 2):
+        "Print one byte from a null-terminated string; jumps to `end` when "
+        "it hits `\\0`. Inner loop of `bit.print_str`.",
+    ("bit.print_hex_uint.print_digit", 2):
+        "Print one hex digit, but only after the first non-zero digit has "
+        "been seen (suppresses leading zeros). Inner loop of `bit.print_hex_uint`.",
+    ("hex.dec.step", 2):
+        "One nibble of a propagating decrement: decrement `hex` by 1; on "
+        "underflow continue to the next nibble, else jump to `end`.",
+    ("hex.inc.step", 2):
+        "One nibble of a propagating increment: increment `hex` by 1; on "
+        "overflow continue to the next nibble, else jump to `end`.",
+
+    # ---------- other fragment / metadata-leak summaries ----------
+    ("hex.if_flags", 4):
+        "Jumps to `l1` if bit `hex` of the 16-bit `flags` constant is "
+        "set, else `l0`.",
+    ("hex.add_mul", 2):
+        "`res += x * dst + carry_dst` — one shift-and-add (multiply-"
+        "accumulate) step used by `hex.mul`. Reads/writes the global "
+        "multiplication carry.",
+    ("bit.print_dec_uint.div10_step", 8):
+        "One step inside `bit.print_dec_uint`: divides `src` by 10, "
+        "stashes the remainder as an ASCII digit, and trips `char_flag` "
+        "to make this digit printable.",
 
     # ---------- bit/div (user requested major update) ----------
     ("bit.idiv", 5):
@@ -215,6 +267,26 @@ def _apply_override(macro_fq: str, macro_arity: int, info: "DocInfo") -> None:
     override = _DESCRIPTION_OVERRIDES.get((macro_fq, macro_arity))
     if override is not None:
         info.description = override
+
+
+# Upstream STL convention: `// like: *ptr;` / `// Like: sp++` introduces
+# a pseudocode intent line. "Effectively:" reads as English in our docs.
+#
+# Anchored at start-of-line (multiline mode) with optional leading
+# whitespace + optional backtick, so we only catch the prefix form. Mid-
+# sentence colon usages like `// used to initialize a string, like:
+# bit.str "Hello, World!"` in bit/casting.fj are NOT rewritten.
+# The optional `?` backtick lets us match the post-`_extract_fields`
+# wrapped form `  `Like:  sp++`` as well as the raw source form.
+_LIKE_PREFIX_RE = re.compile(r"(?m)^([ \t]*`?)[Ll]ike:")
+
+
+def _normalize_like_prefix(text: str) -> str:
+    """Replace upstream `Like:` / `like:` intent-prefix with `Effectively:`.
+    Applied to every macro description (auto-extracted AND override).
+    Only matches at line-start (after optional whitespace and one
+    optional backtick) — see `_LIKE_PREFIX_RE` for why."""
+    return _LIKE_PREFIX_RE.sub(r"\1Effectively:", text)
 
 
 # IGNORECASE for the "Time" / "Space" prefix words because the upstream
@@ -353,6 +425,7 @@ def attach_docs(source: str, file: FileNode) -> dict[int, DocInfo]:
         doc_lines = _collect_doc_block(lines, macro.start_line)
         info = _extract_fields(doc_lines)
         _apply_override(macro.fq_name, macro.arity, info)
+        info.description = _normalize_like_prefix(info.description)
         result[id(macro)] = info
 
     for const in file.constants:

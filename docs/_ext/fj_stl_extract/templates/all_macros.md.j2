@@ -4,6 +4,9 @@ Every macro in the standard library, sorted by fully-qualified name and arity. {
 
 | Macro | File | Time | Space | Summary |
 |---|---|---|---|---|
+{# Escape `|` as `\|` so cells containing `dst |= src` or `(src<<4 | dst)`
+   don't accidentally start a new column. Only the prose / pseudocode
+   columns need this; macro names and file paths never contain `|`. #}
 {% for r in rows -%}
-| [`{{ r.fq_name }}/{{ r.arity }}`]({{ r.link }}) | `{{ r.file_rel }}` | {% if r.time %}`{{ r.time }}`{% endif %} | {% if r.space %}`{{ r.space }}`{% endif %} | {{ r.short }} |
+| [`{{ r.fq_name }}/{{ r.arity }}`]({{ r.link }}) | `{{ r.file_rel }}` | {% if r.time %}`{{ r.time | replace("|", "\\|") }}`{% endif %} | {% if r.space %}`{{ r.space | replace("|", "\\|") }}`{% endif %} | {{ r.short | replace("|", "\\|") }} |
 {% endfor %}
