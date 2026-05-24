@@ -239,6 +239,11 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
     # stl.get_sp source has `//   dst[:w/4] = sp` (indented) — the
     # prefer-indented heuristic picks it after this fix. No override needed.
 
+    # ---------- ptrlib ----------
+    ("stl.ptr_init", 0):
+        "One-time initialisation of the pointer dispatch infrastructure. "
+        "Use `stl.startup_and_init_pointers`, which calls this for you.",
+
     # ---------- hex/pointers ----------
     ("hex.pointers.ptr_init", 0):
         "One-time initialisation of the pointer dispatch infrastructure: "
