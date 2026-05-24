@@ -236,6 +236,37 @@ ns bit {
     assert "unsigned decimal number" in info.description
 
 
+def test_short_desc_prefers_indented_line_over_warning():
+    """Polish batch 3: the heuristic now prefers an indented intent
+    line (the STL's convention for "this is what the macro does")
+    over earlier non-indented warning/note text.
+
+    For e.g. `bit.inc1` whose doc is:
+        // Unsafe for dst==carry ...
+        // Complexity: 2@+6
+        //   {carry:dst}++
+        // carry,dst are bits.
+    the summary should be `{carry:dst}++`, not the "Unsafe" warning.
+    """
+    from fj_stl_extract.renderer import _short_desc
+
+    src = """\
+ns bit {
+    // Unsafe for dst==carry (but there is no reason in calling it that way)
+    // Complexity: 2@+6
+    //   {carry:dst}++
+    // carry,dst are bits.
+    def inc1 dst, carry {}
+}
+"""
+    info = _doc(src, "inc1")
+    # The indented `{carry:dst}++` line should win as summary.
+    summary = _short_desc(info.description)
+    assert "{carry:dst}++" in summary
+    # The warning prefix should NOT be the summary.
+    assert "Unsafe" not in summary
+
+
 def test_plain_dotted_name_not_backticked_inline():
     """Polish #1: a token like `bit.add` (no operators, just dots)
     should NOT be backticked — it would conflict with cross-page
@@ -348,6 +379,68 @@ ns stl {
     assert info.time_complexity is None
     assert info.space_complexity is None
     assert "Complexity is the runtime cost" in info.description
+
+
+def test_size_complexity_maps_to_space():
+    """Polish batch 3: `// Size Complexity: N` is the upstream STL's
+    label for what we call space complexity. Used by bit.bit, hex.hex,
+    hex.tables_init.* macros."""
+    src = """\
+ns stl {
+    // Size Complexity: 1
+    //
+    // a basic memory cell.
+    def cell { x }
+}
+"""
+    info = _doc(src, "cell")
+    assert info.space_complexity == "1"
+    assert info.time_complexity is None
+
+
+def test_typo_time_complexity_case_insensitive():
+    """Polish batch 3: bit/cond_jumps.fj has `// TIme Complexity: ...`
+    (capital I typo). Case-insensitive match captures it."""
+    src = """\
+ns stl {
+    // TIme Complexity: n(2@+4)
+    // Space Complexity: n(3@+6)
+    def cmp n {}
+}
+"""
+    info = _doc(src, "cmp")
+    assert info.time_complexity == "n(2@+4)"
+    assert info.space_complexity == "n(3@+6)"
+
+
+def test_description_override_replaces_extracted_description():
+    """Polish batch 3: when an override exists for (fq_name, arity),
+    it replaces the auto-extracted description but leaves complexity
+    and other fields untouched."""
+    src = """\
+ns bit {
+    // Size Complexity: 1
+    //
+    // some auto-extracted text we want to override
+    def bit value {}
+}
+"""
+    info = _doc(src, "bit")
+    # Override fires: description is the hand-authored bit description.
+    assert "basic variable" in info.description
+    assert "won't ever be executed" in info.description
+    # Complexity still comes from the source.
+    assert info.space_complexity == "1"
+
+
+def test_description_override_carries_through_short_desc():
+    """The file-page bullet summary derives from the override, not
+    from the original source comment."""
+    from fj_stl_extract.renderer import _short_desc
+    from fj_stl_extract.doc_attach import _DESCRIPTION_OVERRIDES
+
+    summary = _short_desc(_DESCRIPTION_OVERRIDES[("bit.ptr_inc", 1)])
+    assert "ptr[:n] += 2w" in summary
 
 
 def test_requires_collected_as_list():
