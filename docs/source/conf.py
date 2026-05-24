@@ -53,11 +53,10 @@ sitemap_url_scheme = "{link}"
 
 # sphinx-notfound-page: serve a friendly 404 with site nav. We supply
 # our own 404.md so the page has personality instead of just an
-# auto-generated "not found" line.
+# auto-generated "not found" line. (`notfound_pagename` tells the
+# extension to use our hand-written 404.md as the body source.)
 notfound_urls_prefix = "/"
-notfound_template = "page.html"
 notfound_pagename = "404"
-notfound_no_urls_prefix = False
 
 # Path resolution: from docs/source/conf.py, the flip-jump submodule
 # sits at ../../vendor/flip-jump/flipjump/stl. This is the default in

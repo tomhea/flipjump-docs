@@ -2,39 +2,45 @@
 
 ## Problem
 
-Read two decimal numbers from stdin, print their sum.
+Add two values stored in data labels and print the sum. (Reading decimal numbers from stdin is more involved — there is no `bit.input_dec` in the STL; you'd hand-roll one using `bit.input` + per-digit parsing. This recipe sticks to compile-time values for clarity.)
 
 ## Code
 
 ```fj
 stl.startup_and_init_all
 
-bit.print_str 9, prompt_a
-bit.input_dec a, err
-bit.print_str 9, prompt_b
-bit.input_dec b, err
+bit.print_str 7, label_a
+bit.print_dec_uint 32, a
+stl.output '\n'
 
-bit.add 32, a, b
+bit.print_str 7, label_b
+bit.print_dec_uint 32, b
+stl.output '\n'
 
-bit.print_str 7, eq_str
+bit.add 32, a, b      // a += b
+
+bit.print_str 7, label_sum
 bit.print_dec_uint 32, a
 stl.output '\n'
 stl.loop
 
-err:
-    stl.output "bad input\n"
-    stl.loop
+label_a:   bit.str "a   = "
+label_b:   bit.str "b   = "
+label_sum: bit.str "a+b = "
+a: bit.vec 32, 123
+b: bit.vec 32, 456
+```
 
-prompt_a: bit.str "first:  "
-prompt_b: bit.str "second: "
-eq_str:   bit.str "sum = "
-a: bit.vec 32
-b: bit.vec 32
+Output:
+```
+a   = 123
+b   = 456
+a+b = 579
 ```
 
 ## Walkthrough
 
-- `bit.input_dec dst, err` — reads decimal digits from stdin until a non-digit is hit (typically newline); parses to a binary integer.
+- `bit.vec 32, val` allocates a 32-bit variable initialised to `val`. The initial value is baked into the macro expansion at assembly time.
 - `bit.add n, dst, src` — adds `src[:n]` into `dst[:n]` in place. Result lives in `dst`. The macro propagates the carry naturally.
 - `bit.print_dec_uint 32, a` — print `a` (now holding `a+b`).
 

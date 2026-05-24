@@ -348,8 +348,18 @@ def _macro_context(*, macro: MacroNode, file: ExtractedFile, index: StlIndex,
             "@context": "https://schema.org",
             "@type": "TechArticle",
             "headline": f"{macro.fq_name} (arity {macro.arity})",
-            "description": (doc.description.split("\n")[0].strip().strip("`")
-                            if doc and doc.description else f"FlipJump STL macro {macro.fq_name}"),
+            "description": (
+                # Resolve directive markers AND drop the trailing
+                # backticks/spaces from the first description line so
+                # nothing zero-width-space-wrapped leaks into the
+                # JSON-LD <script> block. The empty directives_link
+                # arg makes the resolver strip markers to bare names.
+                _resolve_directive_markers(
+                    doc.description.split("\n")[0], ""
+                ).strip().strip("`")
+                if doc and doc.description
+                else f"FlipJump STL macro {macro.fq_name}"
+            ),
             "url": f"https://fjdocs.tomhe.app/{stl_output_prefix}/{macro_doc}.html",
             "isPartOf": {
                 "@type": "TechArticle",
