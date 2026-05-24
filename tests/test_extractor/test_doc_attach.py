@@ -230,6 +230,56 @@ ns stl {
     assert "bit.add" in info.description
 
 
+def test_url_not_backticked():
+    """Regression (CR-ist polish): a URL like `https://example.com/foo`
+    would have matched the inline-code regex (identifier prefix, has
+    operator chars like `/` and `=`) and gotten backticked, which
+    breaks any surrounding `[label](url)` Markdown link."""
+    src = """\
+ns stl {
+    // see https://esolangs.org/wiki/FlipJump for context
+    def f {}
+}
+"""
+    info = _doc(src, "f")
+    # URL stays bare — no backticks.
+    assert "`https" not in info.description
+    assert "https://esolangs.org/wiki/FlipJump" in info.description
+
+
+def test_markdown_link_url_not_backticked():
+    """A `[label](url)` Markdown link in a doc comment must survive
+    the inline-code transform with the URL intact."""
+    src = """\
+ns stl {
+    // see [esolangs](https://esolangs.org/wiki/FlipJump) for context
+    def f {}
+}
+"""
+    info = _doc(src, "f")
+    assert "(https://esolangs.org/wiki/FlipJump)" in info.description
+    # The URL must NOT be backticked.
+    assert "(`https" not in info.description
+
+
+def test_triple_complexity_block_explicit_space_wins():
+    """Regression (CR-ist polish): if a doc block has both an ambiguous
+    `Complexity:` AND a later explicit `Space:`, the explicit Space
+    must win — the previous ambiguous resolution was silently dropping
+    the explicit value into the still-empty space slot."""
+    src = """\
+ns stl {
+    // Time Complexity: A
+    // Complexity: B
+    // Space Complexity: C
+    def loop {}
+}
+"""
+    info = _doc(src, "loop")
+    assert info.time_complexity == "A"
+    assert info.space_complexity == "C"
+
+
 def test_requires_collected_as_list():
     src = """\
 ns hex {

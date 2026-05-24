@@ -41,6 +41,7 @@ The upstream repo: language implementation, standard library, example programs, 
 :::
 
 :::{grid-item-card} 📜 esolangs.org/FlipJump
+:link: https://esolangs.org/wiki/FlipJump
 
 Background commentary on the language design, computational classification, and links to related single-instruction languages.
 

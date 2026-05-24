@@ -58,8 +58,19 @@ _INLINE_CODE_RE = re.compile(
 
 def _backtick_inline_code(text: str) -> str:
     """Wrap inline code-like tokens (`dst==carry`, `x[:n]++`, …) in
-    Markdown inline-code backticks. Leaves natural prose alone."""
-    return _INLINE_CODE_RE.sub(r"`\1`", text)
+    Markdown inline-code backticks. Leaves natural prose alone.
+
+    URLs (anything containing `://`) are skipped via a callback so a
+    raw `https://...` or a `[label](url)` Markdown link doesn't get
+    its scheme/path backticked into garbage. (CR-ist finding on the
+    polish batch.)
+    """
+    def repl(m: re.Match) -> str:
+        token = m.group(1)
+        if "://" in token:
+            return token
+        return f"`{token}`"
+    return _INLINE_CODE_RE.sub(repl, text)
 
 
 @dataclass
@@ -198,18 +209,26 @@ def _extract_fields(doc_lines: list[str]) -> DocInfo:
         ):
             complexity_entries[i] = ("space", val)
 
-    # Pass 3: assign to info, first-write-wins per field. Ambiguous
-    # entries that survived fill BOTH fields.
+    # Pass 3a: assign all EXPLICIT entries first. This ensures that
+    # in a pathological [Time:A, Complexity:B, Space:C] block, the
+    # explicit `Space:C` populates space before any ambiguous entry
+    # could grab the slot. (CR-ist finding on the polish batch.)
     for kind, val in complexity_entries:
         if kind == "time" and info.time_complexity is None:
             info.time_complexity = val
         elif kind == "space" and info.space_complexity is None:
             info.space_complexity = val
-        elif kind == "ambiguous":
-            if info.time_complexity is None:
-                info.time_complexity = val
-            if info.space_complexity is None:
-                info.space_complexity = val
+
+    # Pass 3b: ambiguous entries fill any remaining empty slots. If
+    # both time and space are still unset, an ambiguous entry fills
+    # BOTH (the canonical `Complexity: X` → both case).
+    for kind, val in complexity_entries:
+        if kind != "ambiguous":
+            continue
+        if info.time_complexity is None:
+            info.time_complexity = val
+        if info.space_complexity is None:
+            info.space_complexity = val
 
     # Description: trim leading/trailing blank lines but preserve
     # indentation on non-blank lines. Each non-blank line gets a
