@@ -45,4 +45,4 @@ The cumulative effect is large. On the BF test corpus shipped with the repo, tot
 ## See also
 
 - [The FlipJump IDE](ide.md) — paste the generated `.fj` and step through it.
-- [Standard Library — `bit/memory.fj`](../stl/_generated/file--bit-memory.md) — the tape-cell representation bf2fj uses under the hood.
+- [Standard Library — `bit/memory.fj`](../stl/bit/memory.md) — the tape-cell representation bf2fj uses under the hood.

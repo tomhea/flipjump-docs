@@ -30,12 +30,47 @@ from .parser import FileNode
 __all__ = ["DocInfo", "attach_docs"]
 
 
-_TIME_RE = re.compile(r"^\s*Time\s+Complexity:\s*(.+?)\s*$")
-_SPACE_RE = re.compile(r"^\s*Space\s+Complexity:\s*(.+?)\s*$")
-_BOTH_RE = re.compile(r"^\s*Complexity:\s*(.+?)\s*$")
+_TIME_RE = re.compile(r"^\s*Time\s+Complexity\s*:\s*(.+?)\s*$")
+_SPACE_RE = re.compile(r"^\s*Space\s+Complexity\s*:\s*(.+?)\s*$")
+_BOTH_RE = re.compile(r"^\s*Complexity\s*:\s*(.+?)\s*$")
+# Short forms `Time: X` / `Space: X` appear in many STL files as
+# follow-ups to a leading `Complexity:` line — see e.g. bit/memory.fj
+# where `// Complexity: 2@+5` is followed by `// Space: 3@+8`,
+# meaning the first was Time and the second is Space.
+_TIME_SHORT_RE = re.compile(r"^\s*Time\s*:\s*(.+?)\s*$")
+_SPACE_SHORT_RE = re.compile(r"^\s*Space\s*:\s*(.+?)\s*$")
 _REQUIRES_RE = re.compile(r"^\s*@requires\s+(.+?)\s*$")
 _OUTPUT_PARAM_RE = re.compile(r"^\s*@output-param\s+(\w+)\s*:\s*(.+?)\s*$")
 _BANNER_RE = re.compile(r"^\s*[-=*~]{3,}")
+
+# An "inline code" token in prose: identifier-prefixed run containing at
+# least one operator-only char (`= + - * / % & | ^ < > ! [`). Identifier
+# prefix prevents matching bare `/`, `*` etc.; the operator gate
+# prevents false-positives on plain dotted names like `bit.add` (which
+# get linked elsewhere). Negative lookbehind/lookahead avoids
+# re-wrapping already-backticked content.
+_INLINE_CODE_RE = re.compile(
+    r"(?<![`\w])"
+    r"([A-Za-z_][\w.\[\]:]*[\[=+\-*/%&|^<>!][\w.\[\]:=+\-*/%&|^<>!]*)"
+    r"(?![`\w])"
+)
+
+
+def _backtick_inline_code(text: str) -> str:
+    """Wrap inline code-like tokens (`dst==carry`, `x[:n]++`, …) in
+    Markdown inline-code backticks. Leaves natural prose alone.
+
+    URLs (anything containing `://`) are skipped via a callback so a
+    raw `https://...` or a `[label](url)` Markdown link doesn't get
+    its scheme/path backticked into garbage. (CR-ist finding on the
+    polish batch.)
+    """
+    def repl(m: re.Match) -> str:
+        token = m.group(1)
+        if "://" in token:
+            return token
+        return f"`{token}`"
+    return _INLINE_CODE_RE.sub(repl, text)
 
 
 @dataclass
@@ -107,22 +142,20 @@ def _extract_fields(doc_lines: list[str]) -> DocInfo:
     info = DocInfo(raw_doc_lines=list(doc_lines))
     description_parts: list[str] = []
 
+    # Pass 1: classify each line. Complexity-like lines go into
+    # `complexity_entries`; @-tags update info directly; everything
+    # else becomes description.
+    #
+    # Each complexity entry: (kind, value) where kind is one of
+    # 'time', 'space', or 'ambiguous'. Ambiguous means it was a bare
+    # `Complexity:` line whose target field depends on what other
+    # complexity lines surround it.
+    complexity_entries: list[tuple[str, str]] = []
+
     for line in doc_lines:
         body = _strip_comment_prefix(line)
 
-        m = _TIME_RE.match(body)
-        if m:
-            info.time_complexity = m.group(1)
-            continue
-        m = _SPACE_RE.match(body)
-        if m:
-            info.space_complexity = m.group(1)
-            continue
-        m = _BOTH_RE.match(body)
-        if m and info.time_complexity is None and info.space_complexity is None:
-            info.time_complexity = m.group(1)
-            info.space_complexity = m.group(1)
-            continue
+        # Doc tags first (most specific).
         m = _REQUIRES_RE.match(body)
         if m:
             info.requires.append(m.group(1))
@@ -132,16 +165,99 @@ def _extract_fields(doc_lines: list[str]) -> DocInfo:
             info.output_params[m.group(1)] = m.group(2)
             continue
 
+        # Longest complexity forms before short ones.
+        m = _TIME_RE.match(body)
+        if m:
+            complexity_entries.append(("time", m.group(1)))
+            continue
+        m = _SPACE_RE.match(body)
+        if m:
+            complexity_entries.append(("space", m.group(1)))
+            continue
+        m = _BOTH_RE.match(body)
+        if m:
+            complexity_entries.append(("ambiguous", m.group(1)))
+            continue
+        m = _TIME_SHORT_RE.match(body)
+        if m:
+            complexity_entries.append(("time", m.group(1)))
+            continue
+        m = _SPACE_SHORT_RE.match(body)
+        if m:
+            complexity_entries.append(("space", m.group(1)))
+            continue
+
         description_parts.append(body)
 
-    # Trim leading and trailing BLANK lines, but preserve indentation
-    # on non-blank lines (matters for `//   pseudocode` blocks). A
-    # plain `.strip()` would erode the leading two-space indent.
+    # Pass 2: resolve ambiguous Complexity: entries against their
+    # neighbours. A bare `Complexity:` followed by a later `Space:`
+    # (or `Space Complexity:`) line, with no earlier Time spec,
+    # becomes Time. Mirror for the opposite layout.
+    for i, (kind, val) in enumerate(complexity_entries):
+        if kind != "ambiguous":
+            continue
+        later_kinds = [k for k, _ in complexity_entries[i + 1:]]
+        earlier_kinds = [k for k, _ in complexity_entries[:i]]
+        if (
+            "space" in later_kinds and "time" not in later_kinds
+            and "time" not in earlier_kinds
+        ):
+            complexity_entries[i] = ("time", val)
+        elif (
+            "time" in earlier_kinds and "space" not in earlier_kinds
+            and "space" not in later_kinds
+        ):
+            complexity_entries[i] = ("space", val)
+
+    # Pass 3a: assign all EXPLICIT entries first. This ensures that
+    # in a pathological [Time:A, Complexity:B, Space:C] block, the
+    # explicit `Space:C` populates space before any ambiguous entry
+    # could grab the slot. (CR-ist finding on the polish batch.)
+    for kind, val in complexity_entries:
+        if kind == "time" and info.time_complexity is None:
+            info.time_complexity = val
+        elif kind == "space" and info.space_complexity is None:
+            info.space_complexity = val
+
+    # Pass 3b: ambiguous entries fill any remaining empty slots. If
+    # both time and space are still unset, an ambiguous entry fills
+    # BOTH (the canonical `Complexity: X` → both case).
+    for kind, val in complexity_entries:
+        if kind != "ambiguous":
+            continue
+        if info.time_complexity is None:
+            info.time_complexity = val
+        if info.space_complexity is None:
+            info.space_complexity = val
+
+    # Description: trim leading/trailing blank lines but preserve
+    # indentation on non-blank lines. Each non-blank line gets a
+    # two-space trailing hard break so that single `//` lines in
+    # source render as visually separate lines in HTML (Markdown
+    # collapses bare `\n` into a single space within a paragraph).
+    # Blank source lines stay as paragraph breaks (`\n\n`).
     while description_parts and not description_parts[0].strip():
         description_parts.pop(0)
     while description_parts and not description_parts[-1].strip():
         description_parts.pop()
-    info.description = "\n".join(description_parts)
+    out_lines: list[str] = []
+    for part in description_parts:
+        if not part.strip():
+            out_lines.append("")
+            continue
+        # Pseudocode convention: a `//   x++` line (i.e. two or more
+        # leading spaces inside the comment) is wrapped entirely in
+        # inline code so the operators don't get treated as prose.
+        # All other lines get per-token inline-code wrapping.
+        stripped_left = part.lstrip(" ")
+        leading = part[: len(part) - len(stripped_left)]
+        content = stripped_left.rstrip()
+        if len(leading) >= 2:
+            transformed = leading + "`" + content + "`"
+        else:
+            transformed = _backtick_inline_code(content)
+        out_lines.append(transformed + "  ")
+    info.description = "\n".join(out_lines)
     return info
 
 

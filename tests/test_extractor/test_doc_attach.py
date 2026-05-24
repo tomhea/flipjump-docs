@@ -24,7 +24,10 @@ ns stl {
 }
 """
     info = _doc(src, "loop")
-    assert info.description == "doc line 1\ndoc line 2"
+    # Each non-blank line gets a "  " trailing hard break so MyST
+    # renders source line breaks as visual line breaks (Markdown
+    # otherwise collapses single \n into a space within a paragraph).
+    assert info.description == "doc line 1  \ndoc line 2  "
     assert len(info.raw_doc_lines) == 2
 
 
@@ -66,7 +69,7 @@ ns hex {
 }
 """
     info = _doc(src, "foo")
-    assert info.description == "adds two hexes"
+    assert info.description == "adds two hexes  "
 
 
 # ---------- structured fields ----------
@@ -108,8 +111,9 @@ ns stl {
     assert info.space_complexity == "2"
 
 
-def test_combined_complexity_does_not_override_explicit_fields():
-    # If both Time/Space and Complexity appear, the explicit ones win.
+def test_ambiguous_complexity_after_time_becomes_space():
+    """`Time Complexity: A` then `Complexity: B` — the B becomes Space
+    (since the surrounding context already pinned Time)."""
     src = """\
 ns stl {
     // Time Complexity: A
@@ -119,13 +123,11 @@ ns stl {
 """
     info = _doc(src, "loop")
     assert info.time_complexity == "A"
-    # Space stays None because Time was set explicitly — the catch-all
-    # only fires when BOTH explicit fields are missing.
-    assert info.space_complexity is None
+    assert info.space_complexity == "B"
 
 
-def test_combined_complexity_after_explicit_space_only():
-    # Reversed order vs the test above — pin the same precedence rule.
+def test_ambiguous_complexity_after_space_becomes_time():
+    """Mirror: `Space Complexity: S` then `Complexity: B` → B is Time."""
     src = """\
 ns stl {
     // Space Complexity: S
@@ -135,8 +137,147 @@ ns stl {
 """
     info = _doc(src, "loop")
     assert info.space_complexity == "S"
-    # Time stays None — catch-all only fires when BOTH fields are missing.
-    assert info.time_complexity is None
+    assert info.time_complexity == "B"
+
+
+def test_short_time_form_extracts_correctly():
+    """`Time: X` (without "Complexity") is a real convention used in
+    the STL — bit/memory.fj uses it as a follow-up to a leading
+    `Complexity:` line."""
+    src = """\
+ns stl {
+    // Time: 4@+1
+    def loop {}
+}
+"""
+    info = _doc(src, "loop")
+    assert info.time_complexity == "4@+1"
+    assert info.space_complexity is None
+
+
+def test_short_space_form_extracts_correctly():
+    src = """\
+ns stl {
+    // Space: 3@+8
+    def loop {}
+}
+"""
+    info = _doc(src, "loop")
+    assert info.space_complexity == "3@+8"
+
+
+def test_complexity_then_space_short_form_realistic():
+    """The bit.swap pattern from bit/memory.fj:
+    `// Complexity: 2@+5`  ← ambiguous, becomes Time
+    `// Space: 3@+8`       ← short Space form, real Space"""
+    src = """\
+ns stl {
+    // Complexity: 2@+5
+    // Space: 3@+8
+    //   a, b = b, a
+    // a,b are bits.
+    def swap a, b {}
+}
+"""
+    info = _doc(src, "swap")
+    assert info.time_complexity == "2@+5"
+    assert info.space_complexity == "3@+8"
+    # The pseudocode line is backticked (indented → code line); the
+    # prose explanation appears in description.
+    assert "`a, b = b, a`" in info.description
+    assert "a,b are bits." in info.description
+
+
+def test_inline_operator_token_is_backticked():
+    """Polish #1: tokens like `dst==carry` that contain identifier+op
+    are wrapped in backticks so they render as code in prose."""
+    src = """\
+ns bit {
+    // Unsafe for dst==carry (but there is no reason in calling it that way)
+    def inc1 dst, carry {}
+}
+"""
+    info = _doc(src, "inc1")
+    assert "`dst==carry`" in info.description
+
+
+def test_indented_pseudocode_wrapped_in_backticks():
+    """Polish #1: indented pseudocode lines (e.g. `//   x[:n]++`)
+    are wrapped entirely in inline backticks."""
+    src = """\
+ns bit {
+    //   x[:n]++
+    def inc n, x {}
+}
+"""
+    info = _doc(src, "inc")
+    assert "`x[:n]++`" in info.description
+
+
+def test_plain_dotted_name_not_backticked_inline():
+    """Polish #1: a token like `bit.add` (no operators, just dots)
+    should NOT be backticked — it would conflict with cross-page
+    links that the renderer adds separately."""
+    src = """\
+ns stl {
+    // see bit.add for the addition pattern
+    def f {}
+}
+"""
+    info = _doc(src, "f")
+    # No backticks around `bit.add`.
+    assert "`bit.add`" not in info.description
+    assert "bit.add" in info.description
+
+
+def test_url_not_backticked():
+    """Regression (CR-ist polish): a URL like `https://example.com/foo`
+    would have matched the inline-code regex (identifier prefix, has
+    operator chars like `/` and `=`) and gotten backticked, which
+    breaks any surrounding `[label](url)` Markdown link."""
+    src = """\
+ns stl {
+    // see https://esolangs.org/wiki/FlipJump for context
+    def f {}
+}
+"""
+    info = _doc(src, "f")
+    # URL stays bare — no backticks.
+    assert "`https" not in info.description
+    assert "https://esolangs.org/wiki/FlipJump" in info.description
+
+
+def test_markdown_link_url_not_backticked():
+    """A `[label](url)` Markdown link in a doc comment must survive
+    the inline-code transform with the URL intact."""
+    src = """\
+ns stl {
+    // see [esolangs](https://esolangs.org/wiki/FlipJump) for context
+    def f {}
+}
+"""
+    info = _doc(src, "f")
+    assert "(https://esolangs.org/wiki/FlipJump)" in info.description
+    # The URL must NOT be backticked.
+    assert "(`https" not in info.description
+
+
+def test_triple_complexity_block_explicit_space_wins():
+    """Regression (CR-ist polish): if a doc block has both an ambiguous
+    `Complexity:` AND a later explicit `Space:`, the explicit Space
+    must win — the previous ambiguous resolution was silently dropping
+    the explicit value into the still-empty space slot."""
+    src = """\
+ns stl {
+    // Time Complexity: A
+    // Complexity: B
+    // Space Complexity: C
+    def loop {}
+}
+"""
+    info = _doc(src, "loop")
+    assert info.time_complexity == "A"
+    assert info.space_complexity == "C"
 
 
 def test_requires_collected_as_list():
@@ -181,11 +322,43 @@ ns hex {
 """
     info = _doc(src, "add")
     assert info.time_complexity == "4@"
-    # The "  dst += src" line preserves its indent (note: leading 2-space
-    # indent after the `// ` prefix); blank `//` line and the trailing
-    # paragraph both appear in description.
-    assert "  dst += src" in info.description
+    # An indented pseudocode line (`//   dst += src`) gets wrapped in
+    # backticks so the operators are visually distinguished from prose.
+    # The original indent is preserved before the opening backtick.
+    assert "  `dst += src`" in info.description
     assert "both dst, src are hexes." in info.description
+
+
+def test_description_lines_get_markdown_hard_breaks():
+    """Two non-blank source lines should produce two separate visual
+    lines in rendered Markdown. We emit a `  ` (two-space) hard break
+    at the end of each non-blank line so MyST preserves the break."""
+    src = """\
+ns stl {
+    // first line of doc
+    // second line of doc
+    def f {}
+}
+"""
+    info = _doc(src, "f")
+    assert info.description == "first line of doc  \nsecond line of doc  "
+
+
+def test_blank_line_in_doc_becomes_paragraph_break():
+    """A bare `//` in source = blank doc line = paragraph break in
+    output. Should NOT become a hard break."""
+    src = """\
+ns stl {
+    // first paragraph
+    //
+    // second paragraph
+    def f {}
+}
+"""
+    info = _doc(src, "f")
+    # Non-blank lines get the `  ` trailing hard break. The blank
+    # line stays as an empty line, producing `\n\n` between paras.
+    assert info.description == "first paragraph  \n\nsecond paragraph  "
 
 
 # ---------- top-level constants get doc too ----------
@@ -198,7 +371,7 @@ dw = 2 * w
     file = parse(src)
     [const] = file.constants
     docs = attach_docs(src, file)
-    assert docs[id(const)].description == "double word size"
+    assert docs[id(const)].description == "double word size  "
 
 
 # ---------- empty doc ----------

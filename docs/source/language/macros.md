@@ -80,7 +80,7 @@ ns stl {
 }
 ```
 
-Both definitions of `stl.wflip_macro` coexist; `stl.wflip_macro 0x100, 0x42` picks the 2-arg version, `stl.wflip_macro 0x100, 0x42, 0x80` picks the 3-arg version. The STL has several macros with multiple overloads — see e.g. [`stl.startup`](../stl/_generated/macro--stl.startup--0.md).
+Both definitions of `stl.wflip_macro` coexist; `stl.wflip_macro 0x100, 0x42` picks the 2-arg version, `stl.wflip_macro 0x100, 0x42, 0x80` picks the 3-arg version. The STL has several macros with multiple overloads — see e.g. [`stl.startup`](../stl/runlib/startup--0.md).
 
 ## Repetition: `rep(n, var) body`
 

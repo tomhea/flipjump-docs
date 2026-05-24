@@ -15,7 +15,7 @@ from fj_stl_extract.parser import parse
 from fj_stl_extract.dep_graph import build_dep_graph
 from fj_stl_extract.doc_attach import attach_docs
 from fj_stl_extract.pipeline import ExtractedFile, StlIndex, extract_stl
-from fj_stl_extract.renderer import file_slug, macro_slug, render_stl
+from fj_stl_extract.renderer import file_doc_path, macro_doc_path, render_stl
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -38,11 +38,17 @@ def _mini_index(source: str, rel_path: str = "fixture") -> StlIndex:
     return idx
 
 
-# ---------- slugs ----------
+# ---------- path helpers ----------
 
-def test_file_slug_replaces_slashes_with_dashes():
-    assert file_slug("hex/pointers/stack") == "file--hex-pointers-stack"
-    assert file_slug("runlib") == "file--runlib"
+def test_file_doc_path_preserves_directory_structure():
+    assert file_doc_path("hex/pointers/stack") == "hex/pointers/stack"
+    assert file_doc_path("runlib") == "runlib"
+
+
+def test_macro_doc_path_nests_under_file():
+    src = "ns stl { def loop {} }"
+    [m] = parse(src).macros
+    assert macro_doc_path(m, "runlib") == "runlib/loop--0"
 
 
 # ---------- in-memory render ----------
@@ -56,12 +62,12 @@ ns stl {
     def fj f, j { f;j }
 }
 """
-    idx = _mini_index(src)
+    idx = _mini_index(src, rel_path="runlib")
     written = render_stl(idx, tmp_path)
-    names = {p.name for p in written}
-    assert "file--fixture.md" in names
-    assert "macro--stl.loop--0.md" in names
-    assert "macro--stl.fj--2.md" in names
+    rel_paths = {p.relative_to(tmp_path).as_posix() for p in written}
+    assert "runlib.md" in rel_paths
+    assert "runlib/loop--0.md" in rel_paths
+    assert "runlib/fj--2.md" in rel_paths
 
 
 def test_macro_page_contains_signature_and_description(tmp_path):
@@ -72,9 +78,9 @@ ns stl {
     def add a, b { x }
 }
 """
-    idx = _mini_index(src)
+    idx = _mini_index(src, rel_path="runlib")
     render_stl(idx, tmp_path)
-    page = (tmp_path / "macro--stl.add--2.md").read_text(encoding="utf-8")
+    page = (tmp_path / "runlib" / "add--2.md").read_text(encoding="utf-8")
     assert "stl.add" in page
     assert "def add a, b" in page
     assert "4@+12" in page
@@ -88,11 +94,10 @@ ns stl {
     def wflip_macro dst, val, jmp { wflip dst, val, jmp }
 }
 """
-    idx = _mini_index(src)
+    idx = _mini_index(src, rel_path="runlib")
     render_stl(idx, tmp_path)
-    a2 = (tmp_path / "macro--stl.wflip_macro--2.md").read_text(encoding="utf-8")
-    a3 = (tmp_path / "macro--stl.wflip_macro--3.md").read_text(encoding="utf-8")
-    # Page heading should include arity when overloads exist.
+    a2 = (tmp_path / "runlib" / "wflip_macro--2.md").read_text(encoding="utf-8")
+    a3 = (tmp_path / "runlib" / "wflip_macro--3.md").read_text(encoding="utf-8")
     assert "arity 2" in a2
     assert "arity 3" in a3
 
@@ -102,9 +107,9 @@ def test_file_page_lists_macros_grouped_by_namespace(tmp_path):
 ns stl { def loop {} }
 ns bit { def helper {} }
 """
-    idx = _mini_index(src)
+    idx = _mini_index(src, rel_path="runlib")
     render_stl(idx, tmp_path)
-    page = (tmp_path / "file--fixture.md").read_text(encoding="utf-8")
+    page = (tmp_path / "runlib.md").read_text(encoding="utf-8")
     assert "### `stl`" in page
     assert "### `bit`" in page
     assert "stl.loop" in page and "bit.helper" in page
@@ -126,11 +131,8 @@ ns bit {
     def sub dst, src {}
 }
 """
-    render_stl(_mini_index(src), tmp_path)
-    page = (tmp_path / "file--fixture.md").read_text(encoding="utf-8")
-    # The Macros section MUST have each bullet on its own line. Count
-    # the lines that start with `- [` — should equal the number of
-    # macros (3). If newlines were eaten, there would be only 1.
+    render_stl(_mini_index(src, rel_path="bit/math"), tmp_path)
+    page = (tmp_path / "bit" / "math.md").read_text(encoding="utf-8")
     bullet_lines = [
         line for line in page.splitlines()
         if line.lstrip().startswith("- [`")
@@ -146,9 +148,9 @@ def test_constants_appear_in_file_page(tmp_path):
 // the word size doubled
 dw = 2 * w
 """
-    idx = _mini_index(src)
+    idx = _mini_index(src, rel_path="runlib")
     render_stl(idx, tmp_path)
-    page = (tmp_path / "file--fixture.md").read_text(encoding="utf-8")
+    page = (tmp_path / "runlib.md").read_text(encoding="utf-8")
     assert "dw" in page
     assert "2 * w" in page
     assert "the word size doubled" in page
@@ -161,44 +163,67 @@ ns stl {
     def caller { stl.target }
 }
 """
-    idx = _mini_index(src)
+    idx = _mini_index(src, rel_path="runlib")
     render_stl(idx, tmp_path)
-    caller_page = (tmp_path / "macro--stl.caller--0.md").read_text(encoding="utf-8")
-    target_page = (tmp_path / "macro--stl.target--0.md").read_text(encoding="utf-8")
+    caller_page = (tmp_path / "runlib" / "caller--0.md").read_text(encoding="utf-8")
+    target_page = (tmp_path / "runlib" / "target--0.md").read_text(encoding="utf-8")
     assert "## Depends on" in caller_page
-    assert "macro--stl.target--0.md" in caller_page
+    # Both macros live in the same file dir so the relative link is
+    # just `target--0.md` (sibling, no ../).
+    assert "target--0.md" in caller_page
     assert "## Used by" in target_page
-    assert "macro--stl.caller--0.md" in target_page
+    assert "caller--0.md" in target_page
+
+
+def test_cross_file_macro_link_uses_relative_path(tmp_path):
+    """A macro that calls a macro in a different file should have a
+    `../<other_dir>/<other_name>--<arity>.md` link, not the bare slug."""
+    src = """\
+ns runlib { def target {} }
+ns bit { ns math { def caller { runlib.target } } }
+"""
+    # Two files: runlib.fj and bit/math.fj. The cross-file dep link
+    # from bit/math/caller--0 → runlib/target--0 needs `../../runlib/...`
+    fn = parse(src)
+    docs = attach_docs(src, fn)
+    files = []
+    for rel, macro_names in [("runlib", {"target"}), ("bit/math", {"caller"})]:
+        sub_fn = type(fn)()
+        sub_fn.macros = [m for m in fn.macros if m.name in macro_names]
+        files.append(ExtractedFile(
+            rel_path=rel, abs_path=f"/fake/{rel}.fj",
+            source=src, file_node=sub_fn, docs=docs,
+        ))
+    idx = StlIndex(files=files)
+    idx.dep_graph = build_dep_graph(idx.all_macros)
+    render_stl(idx, tmp_path)
+    caller_page = (tmp_path / "bit" / "math" / "caller--0.md").read_text(encoding="utf-8")
+    # From bit/math/caller--0.md to runlib/target--0.md = `../../runlib/target--0.md`
+    assert "../../runlib/target--0.md" in caller_page
 
 
 def test_nullary_macro_in_used_by_has_closed_inline_code(tmp_path):
-    """Regression: when a nullary (arity-0) macro appears in another
-    macro's `used_by` list, its Markdown link must have a closed
-    inline-code span. The previous template put the closing backtick
-    inside an `{% if dep.arity %}` block, so for arity=0 (falsy in
-    Jinja) the backtick was omitted, producing broken Markdown like
-    `` - [`stl.loop](macro--stl.loop--0.md) `` that MyST would not
-    parse as a link.
-    """
+    """Regression: nullary macros in used_by/depends_on lists must
+    have a closed inline-code span. Previously the closing backtick
+    lived inside `{% if arity %}`, which omitted it for arity=0."""
     src = """\
 ns stl {
     def target {}
     def caller { stl.target }
 }
 """
-    render_stl(_mini_index(src), tmp_path)
-    target_page = (tmp_path / "macro--stl.target--0.md").read_text(encoding="utf-8")
-    # The list item must look like: - [`stl.caller`](macro--stl.caller--0.md)
-    # NOT:                          - [`stl.caller](macro--stl.caller--0.md)
-    assert "[`stl.caller`](macro--stl.caller--0.md)" in target_page
-    # And similarly the caller's depends_on:
-    caller_page = (tmp_path / "macro--stl.caller--0.md").read_text(encoding="utf-8")
-    assert "[`stl.target`](macro--stl.target--0.md)" in caller_page
+    render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
+    target_page = (tmp_path / "runlib" / "target--0.md").read_text(encoding="utf-8")
+    # The list item must be: - [`stl.caller`](caller--0.md), NOT
+    # - [`stl.caller](caller--0.md) (unclosed inline code).
+    assert "[`stl.caller`](caller--0.md)" in target_page
+    caller_page = (tmp_path / "runlib" / "caller--0.md").read_text(encoding="utf-8")
+    assert "[`stl.target`](target--0.md)" in caller_page
 
 
 def test_overloaded_macro_link_shows_arity_in_text(tmp_path):
-    """When a macro has overloads, the link DISPLAY text should include
-    the /arity disambiguator so readers can tell which overload they're
+    """When a macro has overloads, the link DISPLAY text includes the
+    /arity disambiguator so readers can tell which overload they're
     being directed to."""
     src = """\
 ns stl {
@@ -207,24 +232,21 @@ ns stl {
     def caller { stl.m 1, 2 }
 }
 """
-    render_stl(_mini_index(src), tmp_path)
-    caller_page = (tmp_path / "macro--stl.caller--0.md").read_text(encoding="utf-8")
-    # Caller calls m/2; the link text should include the /2.
-    assert "[`stl.m/2`](macro--stl.m--2.md)" in caller_page
+    render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
+    caller_page = (tmp_path / "runlib" / "caller--0.md").read_text(encoding="utf-8")
+    assert "[`stl.m/2`](m--2.md)" in caller_page
 
 
 def test_stale_files_pruned_on_regenerate(tmp_path):
-    # First render with two macros.
     src1 = "ns stl { def a {} def b {} }"
-    render_stl(_mini_index(src1), tmp_path)
-    assert (tmp_path / "macro--stl.a--0.md").exists()
-    assert (tmp_path / "macro--stl.b--0.md").exists()
+    render_stl(_mini_index(src1, rel_path="runlib"), tmp_path)
+    assert (tmp_path / "runlib" / "a--0.md").exists()
+    assert (tmp_path / "runlib" / "b--0.md").exists()
 
-    # Second render with only one — the other should be pruned.
     src2 = "ns stl { def a {} }"
-    render_stl(_mini_index(src2), tmp_path)
-    assert (tmp_path / "macro--stl.a--0.md").exists()
-    assert not (tmp_path / "macro--stl.b--0.md").exists()
+    render_stl(_mini_index(src2, rel_path="runlib"), tmp_path)
+    assert (tmp_path / "runlib" / "a--0.md").exists()
+    assert not (tmp_path / "runlib" / "b--0.md").exists()
 
 
 def test_no_root_md_emitted(tmp_path):
@@ -238,28 +260,23 @@ def test_no_root_md_emitted(tmp_path):
 
 def test_macro_page_has_orphan_frontmatter(tmp_path):
     src = "ns stl { def loop {} }"
-    render_stl(_mini_index(src), tmp_path)
-    page = (tmp_path / "macro--stl.loop--0.md").read_text(encoding="utf-8")
-    # Pages should be marked :orphan: so they don't need to be in any
-    # toctree but can still be linked from file pages.
+    render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
+    page = (tmp_path / "runlib" / "loop--0.md").read_text(encoding="utf-8")
     assert page.startswith("---\norphan: true\n---")
 
 
 def test_complexity_links_to_glossary(tmp_path):
-    """M6: macro pages link to the hand-written complexity glossary at
-    language/complexity.md so readers can find what @, w, dw, dbit, n
-    mean without having to leave the page they're reading.
-    Anchor the assertion on the LINK TARGET path (not the visible text)
-    so future template-wording tweaks don't silently break the link.
-    """
+    """Macro pages link to the hand-written complexity glossary at
+    language/complexity.md. Anchor on the link TARGET so future
+    template wording tweaks don't break the test silently."""
     src = """\
 ns stl {
     // Time Complexity: 4@
     def add {}
 }
 """
-    render_stl(_mini_index(src), tmp_path)
-    page = (tmp_path / "macro--stl.add--0.md").read_text(encoding="utf-8")
+    render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
+    page = (tmp_path / "runlib" / "add--0.md").read_text(encoding="utf-8")
     assert "language/complexity.md" in page
 
 
@@ -275,31 +292,49 @@ def stl_render_dir(tmp_path_factory):
     return out
 
 
+def test_known_files_have_rendered_pages(stl_render_dir):
+    """Every .fj file in conf.json should yield a page at the
+    corresponding nested path."""
+    for rel in ("runlib", "bit/math", "hex/math", "hex/pointers/stack"):
+        page = stl_render_dir / (rel + ".md")
+        assert page.is_file(), f"No file page at {page}"
+
+
 def test_known_macros_have_rendered_pages(stl_render_dir):
-    for fq in ("stl.startup", "stl.fj", "bit.add", "hex.add", "hex.div"):
-        # At least one arity-suffixed page must exist for each name.
-        matches = list(stl_render_dir.glob(f"macro--{fq}--*.md"))
-        assert matches, f"No macro page found for {fq}"
+    """Macro pages live under their parent file's directory."""
+    samples = [
+        ("runlib", "startup", 1),     # stl.startup arity 1
+        ("runlib", "fj", 2),          # stl.fj arity 2
+        ("bit/math", "add", 3),       # bit.add arity 3
+        ("hex/math", "add", 2),       # hex.add arity 2
+    ]
+    for file_rel, name, arity in samples:
+        page = stl_render_dir / file_rel / f"{name}--{arity}.md"
+        assert page.is_file(), f"Missing {page}"
 
 
 def test_runlib_file_page_exists_and_mentions_dw(stl_render_dir):
-    page = (stl_render_dir / "file--runlib.md").read_text(encoding="utf-8")
+    page = (stl_render_dir / "runlib.md").read_text(encoding="utf-8")
     assert "runlib" in page
     assert "dw" in page  # the dw constant should be listed
 
 
-def test_hex_pointers_pages_use_dotted_namespace(stl_render_dir):
-    # hex.pointers.* macros must produce pages with the full dotted
-    # namespace in the filename.
-    matches = list(stl_render_dir.glob("macro--hex.pointers.*--*.md"))
-    assert matches, "no hex.pointers macro pages generated"
+def test_hex_pointers_pages_use_nested_directory(stl_render_dir):
+    """hex/pointers/* macros land under their parent file's directory."""
+    # E.g. hex/pointers/stack.fj's macros live under
+    # stl/hex/pointers/stack/<name>--<arity>.md
+    stack_dir = stl_render_dir / "hex" / "pointers" / "stack"
+    assert stack_dir.is_dir(), f"no directory at {stack_dir}"
+    macro_pages = list(stack_dir.glob("*--*.md"))
+    assert macro_pages, "no macro pages generated under hex/pointers/stack/"
 
 
 def test_arity_overloads_render_separate_pages(stl_render_dir):
-    """stl.startup has /0 and /1; both must be present."""
-    a0 = stl_render_dir / "macro--stl.startup--0.md"
-    a1 = stl_render_dir / "macro--stl.startup--1.md"
+    """stl.startup has /0 and /1; both must be present in runlib/."""
+    a0 = stl_render_dir / "runlib" / "startup--0.md"
+    a1 = stl_render_dir / "runlib" / "startup--1.md"
     assert a0.exists() and a1.exists()
-    # Pages should reference each other in the dep graph.
+    # The arity-0 wrapper calls the arity-1 base. Since they live in
+    # the same directory, the link is a sibling: `startup--1.md`.
     a0_text = a0.read_text(encoding="utf-8")
-    assert "macro--stl.startup--1.md" in a0_text
+    assert "startup--1.md" in a0_text

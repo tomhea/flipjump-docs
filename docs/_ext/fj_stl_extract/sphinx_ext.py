@@ -30,13 +30,14 @@ __all__ = ["setup"]
 
 def setup(app: Any) -> dict[str, Any]:  # `Any` to avoid hard sphinx dep at import time
     app.add_config_value("fj_stl_root", "../../vendor/flip-jump/flipjump/stl", "env")
-    app.add_config_value("fj_stl_output", "stl/_generated", "env")
+    app.add_config_value("fj_stl_output", "stl", "env")
     app.add_lexer("fj", FlipJumpLexer)
     # Sphinx's add_lexer only registers the alias passed to it. Other
     # aliases on the lexer class (`flipjump`, `FlipJump`) work because
     # Pygments' own get_lexer_by_name picks them up from the class's
     # aliases attribute when the lexer is importable.
     app.connect("builder-inited", _on_builder_inited)
+    app.connect("html-page-context", _add_extra_favicon_links)
     return {
         "version": "0.5",
         "parallel_read_safe": True,
@@ -77,3 +78,20 @@ def _on_builder_inited(app: Any) -> None:
             f"fj_stl_extract: render failed.\n"
             f"(Underlying error: {type(e).__name__}: {e})"
         )
+
+
+# Extra <link> tags injected into every page's <head>. Furo refuses to
+# be extended via layout.html, and Sphinx's html_favicon config covers
+# only the .ico. We append to `metatags` (which Furo / Sphinx render
+# inside <head>) so the apple-touch-icon and high-DPI PNG favicon are
+# picked up by browsers on every page.
+_EXTRA_HEAD_LINKS = (
+    '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">\n'
+    '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">'
+)
+
+
+def _add_extra_favicon_links(app: Any, pagename: str, templatename: str,
+                             context: dict, doctree: Any) -> None:
+    existing = context.get("metatags", "")
+    context["metatags"] = (existing + "\n" + _EXTRA_HEAD_LINKS) if existing else _EXTRA_HEAD_LINKS

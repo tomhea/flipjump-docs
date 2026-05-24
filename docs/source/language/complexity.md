@@ -5,17 +5,28 @@ Every STL macro page reports `Time` and `Space` complexity using the same shorth
 ## Atomic units
 
 (complexity-at)=
-### `@` — one FlipJump operation
+### `@` — log₂ of the total program size
 
-`@` is the cost of executing one flip-jump op (`a;b`). It is the smallest unit of measure. A macro with complexity `4@` performs four flip-jump operations.
+`@` stands for `log₂(total number of FlipJump ops in the assembled program)`. For typical programs this is between **15 and 25** (i.e. tens of thousands to tens of millions of ops total).
+
+The reason `@` is logarithmic rather than constant:
+
+> The fundamental directive `wflip address, value` (see [Directives](directives.md)) has a runtime cost proportional to the **number of set bits in `address`** — because it emits one bit-flip per set bit. Address widths in FlipJump are `log₂(program_size)` bits, so the average `wflip` is `O(log₂(program_size))` ops, i.e. `O(@)`. Because `wflip` is the building block underneath almost every STL macro (every variable read, every conditional, every arithmetic operation chains multiple `wflip`s), the per-op cost of the STL is naturally measured in `@`-units rather than constant ops.
+
+So an annotation of `4@+12`:
+- `4@` ≈ `4 * log₂(N)` ops where `N` is the total program size — for a typical 20-bit program that's `4 * 20 = 80` ops
+- `+12` is a constant overhead of 12 ops
+- Total: ~92 runtime ops for one invocation
+
+A macro that's annotated `@-1` runs in roughly `@` ops too, since the `-1` is dwarfed by `@`.
 
 ```text
-Complexity: 1     →  1 op
-Complexity: 4@    →  4 ops
-Complexity: @     →  shorthand for 1@ (one op)
+Complexity: 1     →  1 op (constant; no wflip on the hot path)
+Complexity: @     →  one wflip; ~log₂(N) ops
+Complexity: 4@    →  ~4·log₂(N) ops
 ```
 
-`@` is dimensionless from the language's perspective — it expresses "how many primitive operations" rather than wall-clock time. On a real FlipJump implementation, one `@` typically takes a few nanoseconds.
+`@` is dimensionless from the language's perspective — it captures "this macro is dominated by `wflip`s" without committing to a specific program size. On a real FlipJump implementation, one `@` is "a handful of nanoseconds" for typical program sizes.
 
 (complexity-w)=
 ### `w` — word width
@@ -57,7 +68,7 @@ The most common form. `k@` is the per-iteration cost; `c` is the fixed setup ove
 |------------|---------|
 | `2@+5` | 2 ops + 5 ops of setup = 7 ops total |
 | `4@+12` | 4 ops + 12 ops of setup |
-| `8@+14` | bit-level add — see [`bit.add1`](../stl/_generated/macro--bit.add1--3.md) |
+| `8@+14` | bit-level add — see [`bit.add1`](../stl/bit/math/add1--3.md) |
 
 ### `n(...)` — repeated per element
 

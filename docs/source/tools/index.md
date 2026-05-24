@@ -1,6 +1,6 @@
-# Companion tools
+# Companion tools and resources
 
-Three projects sit in the FlipJump ecosystem alongside the language itself:
+Five places to go beyond this docs site:
 
 ::::{grid} 1 1 2 2
 :gutter: 3
@@ -32,6 +32,22 @@ Brainfuck-to-FlipJump compiler with four optimisation passes.
 `pip install bf2fj`
 :::
 
+:::{grid-item-card} 🐙 flip-jump on GitHub
+:link: https://github.com/tomhea/flip-jump
+
+The upstream repo: language implementation, standard library, example programs, tests, the GitHub wiki.
+
+**[github.com/tomhea/flip-jump →](https://github.com/tomhea/flip-jump)**
+:::
+
+:::{grid-item-card} 📜 esolangs.org/FlipJump
+:link: https://esolangs.org/wiki/FlipJump
+
+Background commentary on the language design, computational classification, and links to related single-instruction languages.
+
+**[esolangs.org/wiki/FlipJump →](https://esolangs.org/wiki/FlipJump)**
+:::
+
 ::::
 
 ```{toctree}
@@ -42,4 +58,4 @@ c2fj
 bf2fj
 ```
 
-The IDE is the easiest entry point — it works without any local install. The compilers (c2fj, bf2fj) let you target FlipJump from higher-level languages, which is the most practical way to write non-trivial programs.
+The IDE is the easiest entry point — no local install. The compilers (c2fj, bf2fj) let you target FlipJump from higher-level languages. The upstream repo is where issues, contributions, and the language implementation live. The esolangs page is the canonical external reference.
