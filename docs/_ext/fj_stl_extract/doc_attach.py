@@ -137,8 +137,9 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
         "Jumps to `l1` if bit `hex` of the 16-bit `flags` constant is "
         "set, else `l0`.",
     ("hex.add_mul", 2):
-        "`res += x * dst + carry_dst` — one Horner-rule step used by "
-        "`hex.mul`. Reads/writes the global multiplication carry.",
+        "`res += x * dst + carry_dst` — one shift-and-add (multiply-"
+        "accumulate) step used by `hex.mul`. Reads/writes the global "
+        "multiplication carry.",
     ("bit.print_dec_uint.div10_step", 8):
         "One step inside `bit.print_dec_uint`: divides `src` by 10, "
         "stashes the remainder as an ASCII digit, and trips `char_flag` "
@@ -270,15 +271,22 @@ def _apply_override(macro_fq: str, macro_arity: int, info: "DocInfo") -> None:
 
 # Upstream STL convention: `// like: *ptr;` / `// Like: sp++` introduces
 # a pseudocode intent line. "Effectively:" reads as English in our docs.
-# Only matches when followed by a colon so prose words like "I'd like to"
-# are left alone.
-_LIKE_PREFIX_RE = re.compile(r"\b[Ll]ike:")
+#
+# Anchored at start-of-line (multiline mode) with optional leading
+# whitespace + optional backtick, so we only catch the prefix form. Mid-
+# sentence colon usages like `// used to initialize a string, like:
+# bit.str "Hello, World!"` in bit/casting.fj are NOT rewritten.
+# The optional `?` backtick lets us match the post-`_extract_fields`
+# wrapped form `  `Like:  sp++`` as well as the raw source form.
+_LIKE_PREFIX_RE = re.compile(r"(?m)^([ \t]*`?)[Ll]ike:")
 
 
 def _normalize_like_prefix(text: str) -> str:
     """Replace upstream `Like:` / `like:` intent-prefix with `Effectively:`.
-    Applied to every macro description (auto-extracted AND override)."""
-    return _LIKE_PREFIX_RE.sub("Effectively:", text)
+    Applied to every macro description (auto-extracted AND override).
+    Only matches at line-start (after optional whitespace and one
+    optional backtick) — see `_LIKE_PREFIX_RE` for why."""
+    return _LIKE_PREFIX_RE.sub(r"\1Effectively:", text)
 
 
 # IGNORECASE for the "Time" / "Space" prefix words because the upstream

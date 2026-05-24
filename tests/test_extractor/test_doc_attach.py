@@ -444,9 +444,9 @@ def test_description_override_carries_through_short_desc():
 
 
 def test_memory_primitive_overrides_split_by_arity():
-    """Polish batch 4: bit.bit/0 and bit.bit/1 should have distinct
-    file-page summaries (the 0-arity declaration vs the 1-arity initial-
-    value form). Same for hex.hex/0 vs hex.hex/1.
+    """Polish batch 4: each of the 8 memory primitives has its own
+    one-line summary (no shared paragraph). Covers bit.bit, bit.vec,
+    hex.hex, hex.vec at both their declared arities.
     """
     from fj_stl_extract.renderer import _short_desc
     from fj_stl_extract.doc_attach import _DESCRIPTION_OVERRIDES
@@ -454,10 +454,18 @@ def test_memory_primitive_overrides_split_by_arity():
     assert _short_desc(_DESCRIPTION_OVERRIDES[("bit.bit", 0)]) == "Binary variable."
     assert _short_desc(_DESCRIPTION_OVERRIDES[("bit.bit", 1)]) == \
         "Binary variable with initial value."
+    assert _short_desc(_DESCRIPTION_OVERRIDES[("bit.vec", 1)]) == "Binary vector."
+    assert _short_desc(_DESCRIPTION_OVERRIDES[("bit.vec", 2)]) == \
+        "Binary vector with initial value."
+
     assert _short_desc(_DESCRIPTION_OVERRIDES[("hex.hex", 0)]) == \
         "Hexadecimal variable."
     assert _short_desc(_DESCRIPTION_OVERRIDES[("hex.hex", 1)]) == \
         "Hexadecimal variable with initial value."
+    assert _short_desc(_DESCRIPTION_OVERRIDES[("hex.vec", 1)]) == \
+        "Hexadecimal vector."
+    assert _short_desc(_DESCRIPTION_OVERRIDES[("hex.vec", 2)]) == \
+        "Hexadecimal vector with initial value."
 
 
 def test_like_prefix_normalized_to_effectively():
@@ -475,15 +483,27 @@ ns hex {
 
 
 def test_like_prefix_normalization_preserves_prose():
-    """The `Like:` substitution only matches when followed by a colon,
-    so prose words like 'I would like to ...' are left alone."""
+    """The `Like:` substitution is line-anchored, so mid-sentence
+    usages (with OR without a colon) are left alone. Regression for
+    the CR-finding on bit.str/1: source has `// used to initialize a
+    string, like:   bit.str "Hello, World!"` — the inline `like:` must
+    not be rewritten to `Effectively:`."""
     from fj_stl_extract.doc_attach import _normalize_like_prefix
     # No colon → no substitution.
     assert _normalize_like_prefix("I would like to test this") == \
         "I would like to test this"
-    # Colon-form → substituted.
+    # Mid-sentence colon → no substitution (regression: this used to rewrite).
+    assert _normalize_like_prefix("used to initialize a string, like: bit.str") == \
+        "used to initialize a string, like: bit.str"
+    # Line-leading colon form → substituted.
     assert _normalize_like_prefix("like: x++") == "Effectively: x++"
     assert _normalize_like_prefix("Like: y--") == "Effectively: y--"
+    # Indented + backticked (post-_extract_fields form) → substituted, leading
+    # whitespace and backtick preserved.
+    assert _normalize_like_prefix("  `Like:  sp++`") == "  `Effectively:  sp++`"
+    # Multiline: substitutes per-line, not just at offset 0.
+    assert _normalize_like_prefix("first line\n  Like: second") == \
+        "first line\n  Effectively: second"
 
 
 def test_requires_collected_as_list():
