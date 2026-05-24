@@ -328,11 +328,22 @@ _TIME_COMPLEXITY_OVERRIDES: dict[tuple[str, int], str] = {
     ("stl.skip", 0): "1",
 
     # ---------- misc ----------
-    ("stl.loop", 0): "∞ (halts the program)",
+    # stl.loop's body is `;$ - dw` — an unconditional self-jump that
+    # never terminates. "Halt" is the conventional FJ word for this
+    # pattern (programs commonly end with stl.loop), but the literal
+    # behaviour is an infinite self-loop.
+    ("stl.loop", 0): "∞ (infinite self-loop)",
     ("hex.tables.init_shared", 0): "0",
     ("hex.tables.init_all", 0): "1",
 
     # Helpers / inner-loop pieces (manually derived).
+    # NOTE: `bit.print_hex_uint.print_digit/2` time is the
+    # author-verified value 29@+34. The upstream file has a non-
+    # standard banner `//Comp: 29@+44` above `ns print_hex_uint`
+    # (bit/output.fj:90) which would give a different number — the
+    # banner is not picked up by the extractor (typo for `Complexity`
+    # and not adjacent to the def), and the 29@+34 value here was
+    # provided by the author after re-deriving from the body.
     ("bit._.print_str_one_char", 2): "16@+32",
     ("bit.print_hex_uint.print_digit", 2): "29@+34",
     ("bit.pointers.advance_by_one_and_flip__ptr_wflip", 2): "@+n+1",
@@ -357,11 +368,20 @@ _TIME_COMPLEXITY_OVERRIDES: dict[tuple[str, int], str] = {
 
 _SPACE_COMPLEXITY_OVERRIDES: dict[tuple[str, int], str] = {
     # ---------- data declarations ----------
+    # /1 and /2 entries also listed defensively: their source files have
+    # `// Size Complexity:` comments that the extractor currently picks
+    # up, so these overrides are no-ops today (the "fill only when None"
+    # rule skips them). They keep us covered if the upstream doc comment
+    # ever drops or moves.
     ("bit.bit", 0): "1",
+    ("bit.bit", 1): "1",
     ("bit.vec", 1): "n",
+    ("bit.vec", 2): "n",
     ("bit.str", 1): "(#str+15)&(~7)  // which is (strlen(str)+1)*8",
     ("hex.hex", 0): "1",
+    ("hex.hex", 1): "1",
     ("hex.vec", 1): "n",
+    ("hex.vec", 2): "n",
 
     # ---------- compile-time emitters ----------
     ("stl.comp_if", 3): "1",
@@ -407,6 +427,11 @@ def _apply_complexity_overrides(
     override dicts, but ONLY when the field is still None. This means
     overrides supplement source rather than replacing it — if upstream
     later adds a Complexity: line, the override silently steps aside.
+
+    Note: override values BYPASS `_looks_like_complexity_value` — they
+    go straight to the field. So override strings can include narrative
+    annotations like `"0 (data declaration)"` or `"∞ (infinite self-
+    loop)"` that the validator would reject as prose.
     """
     key = (macro_fq, macro_arity)
     if info.time_complexity is None:
