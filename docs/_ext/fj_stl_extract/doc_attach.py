@@ -262,6 +262,33 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
         "`hex.pointers.read_byte[:2] = *ptr` — read one byte through the "
         "currently-set flip/jump pointers. Use after "
         "`hex.pointers.set_flip_and_jump_pointers`.",
+
+    # ---------- batch 6: accepted doc rewrites ----------
+
+    # bit.input/2 source doc said "(lsb first)" but the body reads bytes
+    # in REVERSE memory order (byte 0 lands at offset 8*(n-1)*dw). The
+    # net effect is that dst[:8n] is a single 8n-bit little-endian
+    # number — author-provided wording captures that intent.
+    ("bit.input", 2):
+        "Effectively inputs an `8*n` bits little endian number into "
+        "`dst[:8n]`.\n\n"
+        "`dst` is an output parameter.",
+
+    # bit.print_str/2 — clarify that the macro prints UP TO n chars,
+    # stopping early on the first `\0`. The original wording missed
+    # the "first n-chars" part.
+    ("bit.print_str", 2):
+        "Prints the first n-chars of the string at `x[:8n]`, or until "
+        "reaches the first `'\\0'` (the earlier).",
+
+    # stl.startup_and_init_all/1 — source doc says "bits" but the
+    # underlying stl.stack_init allocates `hex.vec n` (hex slots, not
+    # bits). The 2-arity form already says "hexes"; align /1.
+    ("stl.startup_and_init_all", 1):
+        "Startup macro — should be the first piece of code in your "
+        "program. Initialises everything needed for the standard library.\n\n"
+        "`stack_bit_size` is the size of the global-stack (will hold "
+        "this number of hexes / return-addresses).",
 }
 
 
@@ -444,6 +471,61 @@ def _apply_complexity_overrides(
             info.space_complexity = s
 
 
+# -----------------------------------------------------------------------
+# @Assumes overrides.
+#
+# When a macro silently depends on a precondition (e.g. `times <= n` for
+# a shift macro, or `stack non-empty` for stl.return), upstream STL
+# already uses the `// @Assumes: ...` convention (see e.g.
+# hex.tables.clean_table_entry__table/3). For the macros listed here
+# the assumption is real but not yet stated in source; the override
+# appends an `@Assumes: ...` line to the rendered description.
+#
+# Keyed by (fq_name, arity). The values are quoted verbatim after the
+# `@Assumes: ` prefix. These mirror the lines that will be added to
+# upstream source in the next flipjump PR.
+# -----------------------------------------------------------------------
+
+_ASSUMES_OVERRIDES: dict[tuple[str, int], str] = {
+    # ---------- shift bounds ----------
+    ("bit.shl", 3): "times <= n",
+    ("bit.shr", 3): "times <= n",
+    ("bit.shra", 3): "times <= n",
+    ("hex.shl_hex", 3): "times <= n",
+    ("hex.shr_hex", 3): "times <= n",
+
+    # ---------- stack / pointer lifecycle ----------
+    ("stl.return", 0): "matched by a prior `stl.call` (stack non-empty)",
+    ("stl.call", 1): "stack has room (caller-side responsibility)",
+    ("stl.call", 2): "stack has room (caller-side responsibility)",
+    ("stl.fret", 1):
+        "`ret_reg` contains a valid return address from a prior `stl.fcall`",
+
+    # ---------- aliasing ----------
+    ("hex.add_count_bits", 3): "`dst` and `src` do not alias",
+
+    # ---------- pointer / shift constraints ----------
+    # /2 form takes `hex, bit_shift`; the 1-arity form has no bit_shift.
+    ("hex.pointers.xor_hex_to_flip_ptr", 2): "`bit_shift` is divisible by 4",
+}
+
+
+def _apply_assumes_override(
+    macro_fq: str, macro_arity: int, info: "DocInfo",
+) -> None:
+    """Append an `@Assumes: ...` line to `info.description` if one is
+    registered for this macro. Mirrors what upstream `// @Assumes: ...`
+    lines would produce once they land in source.
+    """
+    text = _ASSUMES_OVERRIDES.get((macro_fq, macro_arity))
+    if text is None:
+        return
+    line = f"@Assumes: {text}"
+    info.description = (
+        f"{info.description}\n\n{line}" if info.description else line
+    )
+
+
 # Upstream STL convention: `// like: *ptr;` / `// Like: sp++` introduces
 # a pseudocode intent line. "Effectively:" reads as English in our docs.
 #
@@ -605,6 +687,7 @@ def attach_docs(source: str, file: FileNode) -> dict[int, DocInfo]:
         _apply_override(macro.fq_name, macro.arity, info)
         _apply_complexity_overrides(macro.fq_name, macro.arity, info)
         info.description = _normalize_like_prefix(info.description)
+        _apply_assumes_override(macro.fq_name, macro.arity, info)
         result[id(macro)] = info
 
     for const in file.constants:
