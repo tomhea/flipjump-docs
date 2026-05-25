@@ -546,6 +546,45 @@ ns hex {
     assert info.space_complexity == "888"
 
 
+def test_assumes_override_appends_to_existing_description():
+    """Polish batch 6: an `@Assumes:` line is appended to the description
+    on a new paragraph, leaving prose and complexity untouched."""
+    src = """\
+ns bit {
+    //  Time Complexity: n(2@-1)
+    //   x[:n] <<= times
+    def shl n, times, x {}
+}
+"""
+    info = _doc(src, "shl")
+    # Original prose still there.
+    assert "x[:n] <<= times" in info.description
+    # Plus the appended @Assumes.
+    assert "@Assumes: times <= n" in info.description
+
+
+def test_assumes_override_works_without_existing_description():
+    """If a macro has no description prose, the @Assumes line stands
+    alone (no leading blank lines)."""
+    from fj_stl_extract.doc_attach import _apply_assumes_override
+    from fj_stl_extract.doc_attach import DocInfo
+    info = DocInfo()
+    _apply_assumes_override("bit.shl", 3, info)
+    assert info.description == "@Assumes: times <= n"
+
+
+def test_no_assumes_for_unregistered_macro():
+    """Macros not in the override dict get no @Assumes added."""
+    src = """\
+ns bit {
+    //   no-op test
+    def foobar {}
+}
+"""
+    info = _doc(src, "foobar")
+    assert "@Assumes:" not in info.description
+
+
 def test_data_declaration_complexity_override():
     """Memory-primitive overrides use the literal string
     '0 (data declaration)' for Time, communicating that the macro
