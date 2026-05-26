@@ -28,7 +28,41 @@ extensions = [
     "sphinx_sitemap",
     "notfound.extension",
     "fj_stl_extract",
+    "seo",
 ]
+
+# SEO meta-tag + structured-data injection.
+#
+# `seo` is our own Sphinx extension (docs/_ext/seo) that hooks
+# html-page-context and emits, on every page:
+#   - <meta name="description"> (per-page, with manual overrides for the
+#     top-level pages and auto-extraction from the first paragraph
+#     elsewhere — see DEFAULT_PAGE_DESCRIPTIONS in the extension).
+#   - <meta name="keywords"> (legacy, Google-ignored, kept for smaller
+#     search engines).
+#   - <meta name="robots" content="index, follow, max-image-preview:large">
+#   - The full Open Graph and Twitter Card set (title, description, url,
+#     image, type, site_name) so previews on Slack/Discord/Twitter/etc.
+#     render with the FlipJump branding rather than a bare URL.
+# And on the index page only:
+#   - A JSON-LD WebSite schema with a SearchAction (enables a Google
+#     sitelinks search box) and an alternateName list that maps the
+#     site to "FlipJump Documentation", "FlipJump Docs", and "fjdocs".
+#   - A JSON-LD SoftwareApplication schema describing FlipJump itself
+#     (the language) so "FlipJump" / "FlipJump documentation" queries
+#     can resolve us as the canonical reference for the language entity.
+#
+# Any of these defaults can be overridden by setting the matching
+# `seo_*` config value below.
+seo_site_name = "FlipJump Docs"
+seo_site_description = (
+    "Official FlipJump documentation — the one-instruction esoteric "
+    "language. Standard library reference, language guide, cookbook, "
+    "runnable examples, and the browser-based IDE."
+)
+seo_site_url = "https://fjdocs.tomhe.app/"
+seo_og_image = "/og-image.png"
+seo_twitter_handle = ""  # set to "tomhea" or similar to emit twitter:site/creator
 
 # Algolia DocSearch integration. Currently using Sphinx's built-in
 # client-side search; flipping `algolia_enabled = True` here (after
