@@ -11,7 +11,7 @@ Every STL macro page reports `Time` and `Space` complexity using the same shorth
 
 The reason `@` is logarithmic rather than constant:
 
-> The fundamental directive `wflip address, value` (see [Directives](directives.md)) has a runtime cost proportional to the **number of set bits in `address`** — because it emits one bit-flip per set bit. Address widths in FlipJump are `log₂(program_size)` bits, so the average `wflip` is `O(log₂(program_size))` ops, i.e. `O(@)`. Because `wflip` is the building block underneath almost every STL macro (every variable read, every conditional, every arithmetic operation chains multiple `wflip`s), the per-op cost of the STL is naturally measured in `@`-units rather than constant ops.
+> The fundamental directive `wflip address, value` (see [Directives](directives.md)) has a runtime cost proportional to the **number of set bits in `address`** — because it emits one bit-flip per set bit. Address widths in FlipJump are `log₂(program_size)` bits, so the average `wflip` is `log₂(program_size) / 2` ops (as bits are set half of the time), i.e. `@/2`. Because `wflip` is the building block underneath almost every STL macro (every variable read, every conditional, every arithmetic operation chains multiple `wflip`s), the per-op cost of the STL is naturally measured in `@`-units rather than constant ops.
 
 So an annotation of `4@+12`:
 - `4@` ≈ `4 * log₂(N)` ops where `N` is the total program size — for a typical 20-bit program that's `4 * 20 = 80` ops
@@ -22,7 +22,7 @@ A macro that's annotated `@-1` runs in roughly `@` ops too, since the `-1` is dw
 
 ```text
 Complexity: 1     →  1 op (constant; no wflip on the hot path)
-Complexity: @     →  one wflip; ~log₂(N) ops
+Complexity: @     →  two wflips; ~log₂(N) ops
 Complexity: 4@    →  ~4·log₂(N) ops
 ```
 
