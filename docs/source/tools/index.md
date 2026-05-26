@@ -62,8 +62,8 @@ Background commentary on the language design, computational classification, and 
 
 ide
 c2fj
-bf2fj
 claude-skill
+bf2fj
 flip-jump
 esolangs
 ```

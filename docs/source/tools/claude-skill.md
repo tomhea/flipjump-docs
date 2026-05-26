@@ -49,7 +49,7 @@ It does NOT duplicate macro signatures, the full namespace catalogue, or the coo
 
 ## Source
 
-The skill content is also browsable on GitHub at [`tomhea/flipjump-docs`](https://github.com/tomhea/flipjump-docs) under `docs/source/_static/writing-flipjump-stl-code.zip`. Bug reports and improvements welcome there.
+The skill bundle is hosted alongside this site at [`tomhea/flipjump-docs`](https://github.com/tomhea/flipjump-docs) — the zip lives at `docs/source/_static/writing-flipjump-stl-code.zip`. Bug reports and improvements welcome there.
 
 ## Related
 
