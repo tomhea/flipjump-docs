@@ -193,3 +193,82 @@ def test_og_image_is_served(built_site):
     assert img.is_file(), "og-image.png must be served from site root"
     # Size check: at least 10KB (a real card, not an empty placeholder).
     assert img.stat().st_size > 10_000, f"og-image.png suspiciously small: {img.stat().st_size}B"
+
+
+def test_index_description_not_truncated(built_site):
+    """The hardcoded index description must fit under the 160-char snippet
+    budget so the rendered output doesn't carry our own trailing `…` —
+    if Google ever cuts the snippet itself, that's separate, but our own
+    truncation marker should never appear on a hand-written description."""
+    html = _read(built_site, "index.html")
+    desc = _meta(html, name="description")
+    assert desc and not desc.endswith("…"), (
+        f"description shouldn't end with our truncation marker; got {desc!r}"
+    )
+
+
+def test_truncate_boundary():
+    """_truncate must leave a 160-char string alone and add `…` at 161+."""
+    from seo import _truncate  # noqa: PLC0415
+
+    # Exactly at the limit: no truncation.
+    s_160 = "a " * 80  # 160 chars
+    s_160 = s_160[:160]
+    assert _truncate(s_160) == s_160.strip()
+
+    # One past the limit: truncated with the ellipsis character (not "...").
+    s_161 = "x" * 161
+    out = _truncate(s_161)
+    assert out.endswith("…"), f"expected ellipsis suffix, got {out!r}"
+    assert "..." not in out, "must use Unicode ellipsis, not three dots"
+    assert len(out) <= 160, f"truncated output must fit in 160 chars, got {len(out)}"
+
+
+def test_page_description_manual_override(tmp_path):
+    """`seo_page_descriptions` should override both the built-in dictionary
+    and any auto-extracted first paragraph."""
+    # Reach into the module — easier than spinning up a whole sphinx app.
+    from types import SimpleNamespace
+
+    from seo import _page_description  # noqa: PLC0415
+
+    fake_app = SimpleNamespace(
+        config=SimpleNamespace(
+            seo_page_descriptions={"index": "custom landing description for SEO"},
+            seo_site_description="fallback",
+        )
+    )
+    out = _page_description(fake_app, "index", doctree=None)
+    assert out == "custom landing description for SEO"
+
+
+def test_jsonld_only_on_index(built_site):
+    """The SEO extension's WebSite + SoftwareApplication blocks must
+    appear exactly once each — only on the index page."""
+    import json
+
+    pages_to_scan = [
+        "index.html",
+        "stl/index.html",
+        "stl/bit/math.html",
+        "stl/bit/math/add--3.html",
+        "getting-started/index.html",
+        "tools/claude-skill.html",
+    ]
+    counts = {"WebSite": 0, "SoftwareApplication": 0}
+    for page in pages_to_scan:
+        html = _read(built_site, page)
+        blocks = re.findall(
+            r'<script type="application/ld\+json">(.+?)</script>',
+            html,
+            re.DOTALL,
+        )
+        for b in blocks:
+            d = json.loads(b)
+            t = d.get("@type")
+            if t in counts:
+                counts[t] += 1
+    assert counts["WebSite"] == 1, f"WebSite JSON-LD count: {counts['WebSite']}"
+    assert counts["SoftwareApplication"] == 1, (
+        f"SoftwareApplication JSON-LD count: {counts['SoftwareApplication']}"
+    )

@@ -26,7 +26,10 @@ Configuration (set in `conf.py`):
 
     seo_site_name           default "FlipJump Docs"
     seo_site_description    default: a generic landing description
-    seo_site_url            default: html_baseurl
+    seo_site_url            FALLBACK only — used if `html_baseurl` is
+                            not set. With `html_baseurl` set in conf.py
+                            (which is the norm for sphinx-sitemap to
+                            work) this value is unused.
     seo_og_image            default "/og-image.png" (relative to site root)
     seo_twitter_handle      default "" (no twitter:site/creator emitted)
     seo_page_descriptions   default {}; map of pagename → description
@@ -51,9 +54,9 @@ __all__ = ["setup"]
 # in `seo_page_descriptions` wins over these.
 DEFAULT_PAGE_DESCRIPTIONS = {
     "index": (
-        "Official FlipJump documentation — the one-instruction esoteric "
-        "language. Standard library reference, language guide, cookbook, "
-        "runnable examples, and the browser-based IDE."
+        "Official FlipJump documentation: the one-instruction esoteric "
+        "language, its standard library, language guide, cookbook, and "
+        "browser-based IDE."
     ),
     "stl/index": (
         "FlipJump Standard Library (STL) reference: every macro in the "
@@ -172,8 +175,14 @@ def _first_paragraph(doctree: Any) -> str:
     return ""
 
 
-def _truncate(text: str, max_len: int = 155) -> str:
-    """Whitespace-normalise and truncate to max_len chars, ending on a word."""
+def _truncate(text: str, max_len: int = 160) -> str:
+    """Whitespace-normalise and truncate to max_len chars, ending on a word.
+
+    160 is Google's desktop snippet limit (mobile cuts at ~130). We aim
+    to land descriptions under this so the visible Google snippet never
+    shows our own trailing `…` — the built-in descriptions for the
+    landing pages are all hand-shortened below 160.
+    """
     text = re.sub(r"\s+", " ", text).strip()
     if len(text) <= max_len:
         return text
