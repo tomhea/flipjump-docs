@@ -1,6 +1,6 @@
 # FlipJump
 
-A one-instruction esoteric programming language. The only instruction is `a;b`: flip the bit at address `a`, then jump to address `b`. Despite the minimalism, a substantial [standard library](stl/index.md) implements variables, arithmetic, I/O, pointers, and a stack on top of self-modifying code.
+**The official FlipJump documentation.** FlipJump is a one-instruction esoteric programming language — the only instruction is `a;b`: flip the bit at address `a`, then jump to address `b`. Despite the minimalism, a substantial [standard library](stl/index.md) implements variables, arithmetic, I/O, pointers, and a stack on top of self-modifying code.
 
 ```{button-link} https://fj.tomhe.app
 :color: primary
