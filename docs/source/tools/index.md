@@ -23,6 +23,15 @@ C-to-FlipJump compiler. Pipeline: C → RISC-V → FlipJump.
 `pip install c2fj`
 :::
 
+:::{grid-item-card} 🤖 FlipJump Claude Skill
+:link: claude-skill
+:link-type: doc
+
+A Claude Code / Agent SDK skill that teaches Claude to write, debug, and verify FlipJump programs end-to-end against the `fj` CLI.
+
+**[Download zip ↓](../_static/writing-flipjump-stl-code.zip)**
+:::
+
 :::{grid-item-card} 🧠 bf2fj
 :link: bf2fj
 :link-type: doc
@@ -53,6 +62,7 @@ Background commentary on the language design, computational classification, and 
 
 ide
 c2fj
+claude-skill
 bf2fj
 flip-jump
 esolangs
