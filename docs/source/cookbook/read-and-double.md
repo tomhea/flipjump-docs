@@ -45,10 +45,12 @@ hex.print 4, input_buf
 **Decimal input** instead of a single hex digit — read a whole decimal number until newline/EOF:
 
 ```fj
-hex.input_dec_uint 4, value, hex_err     // value: hex.vec 4
+hex.input_dec_uint 4, value, hex_err     // read into a 4-nibble value
+// ...
+value: hex.vec 4                          // declared below stl.loop
 ```
 
-`hex.input_dec_uint n, dst, error` parses ASCII `'0'`–`'9'` into the `n`-nibble `dst` and jumps to `error` on any non-digit byte; `hex.input_dec_int` additionally accepts a leading `-`.
+`hex.input_dec_uint n, dst, error` reads ASCII `'0'`–`'9'` into the `n`-nibble `dst`, stopping at `'\n'` or `'\0'` (EOF); it jumps to `error` only on a byte that is neither a digit nor a terminator. `hex.input_dec_int` additionally accepts a leading `-`. Unlike `hex.print_dec_uint`, these readers use the hex lookup tables, so the program must run `stl.startup_and_init_all` (as the main example above does), not just `stl.startup`.
 
 ## See also
 
