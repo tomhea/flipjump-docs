@@ -42,13 +42,16 @@ hex.vec input_buf, 4
 hex.print 4, input_buf
 ```
 
-**Decimal input** instead of hex:
+**Decimal input** instead of a single hex digit — read a whole decimal number until newline/EOF:
 
 ```fj
-hex.input_as_dec input_buf, hex_err
+hex.input_dec_uint 4, value, dec_err     // value: hex.vec 4
 ```
+
+`hex.input_dec_uint n, dst, error` parses ASCII `'0'`–`'9'` into the `n`-nibble `dst` and jumps to `error` on any non-digit byte; `hex.input_dec_int` additionally accepts a leading `-`.
 
 ## See also
 
 - [`hex.input_as_hex`](../stl/hex/input/input_as_hex--2.md)
+- [`hex.input_dec_uint`](../stl/hex/input/input_dec_uint--3.md), [`hex.input_dec_int`](../stl/hex/input/input_dec_int--3.md)
 - [`hex.add`](../stl/hex/math/add--2.md), [`hex.print`](../stl/hex/output/print--1.md)
