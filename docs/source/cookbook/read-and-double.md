@@ -38,14 +38,14 @@ input_buf: hex.hex
 **Wider value** (use a 4-nibble buffer):
 
 ```fj
-hex.vec input_buf, 4
+input_buf: hex.vec 4      // 4 nibbles instead of 1
 hex.print 4, input_buf
 ```
 
 **Decimal input** instead of a single hex digit — read a whole decimal number until newline/EOF:
 
 ```fj
-hex.input_dec_uint 4, value, dec_err     // value: hex.vec 4
+hex.input_dec_uint 4, value, hex_err     // value: hex.vec 4
 ```
 
 `hex.input_dec_uint n, dst, error` parses ASCII `'0'`–`'9'` into the `n`-nibble `dst` and jumps to `error` on any non-digit byte; `hex.input_dec_int` additionally accepts a leading `-`.

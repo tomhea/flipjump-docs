@@ -44,10 +44,10 @@ stl.loop
 n: bit.vec 32, 0xCAFE
 ```
 
-**Decimal from a `hex.vec` value** — the same decimal output for the (faster-arithmetic) hex family. Needs `hex.init`, so use `stl.startup_and_init_all`; here `n` counts nibbles, so 8 nibbles = 32 bits:
+**Decimal from a `hex.vec` value** — the same decimal output for the (faster-arithmetic) hex family. Here `n` counts nibbles, so 8 nibbles = 32 bits:
 
 ```fj
-stl.startup_and_init_all
+stl.startup
 hex.print_dec_uint 8, n
 stl.output '\n'
 stl.loop
@@ -55,7 +55,7 @@ stl.loop
 n: hex.vec 8, 12345
 ```
 
-`hex.print_dec_int` is the signed form.
+`hex.print_dec_int` is the signed form. Both build on the bit printer internally, so — unlike most `hex.*` macros — they need only `stl.startup`, no `hex.init`.
 
 ## See also
 
