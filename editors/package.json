@@ -1,0 +1,19 @@
+{
+  "name": "flipjump-editors",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tooling that builds and verifies the FlipJump TextMate grammar shared by the VS Code extension and the JetBrains bundle.",
+  "license": "BSD-2-Clause",
+  "type": "module",
+  "scripts": {
+    "sync": "node sync.mjs",
+    "verify": "node test/verify-scopes.mjs",
+    "render": "node test/render-preview.mjs",
+    "check": "npm run sync && node test/verify-scopes.mjs"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.2.0"
+  }
+}

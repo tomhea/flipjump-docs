@@ -1,0 +1,99 @@
+"""Parity guard: the shared TextMate grammar must stay in lock-step with the
+Pygments lexer.
+
+The VS Code extension and the JetBrains bundle both consume
+``editors/grammars/flipjump.tmLanguage.json``. That grammar is a hand-written
+port of ``docs/_ext/fj_stl_extract/pygments_lexer.py`` (which mirrors the IDE's
+Monaco tokenizer). These tests fail loudly if the lexer's word-lists change
+without the grammar following, and if the per-editor synced copies drift from
+the canonical grammar.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+
+from fj_stl_extract.pygments_lexer import _NON_MACRO_LEAD_WORDS
+
+# Repo root = three levels up from tests/test_extractor/.
+_ROOT = Path(__file__).resolve().parents[2]
+_EDITORS = _ROOT / "editors"
+_CANONICAL_GRAMMAR = _EDITORS / "grammars" / "flipjump.tmLanguage.json"
+_CANONICAL_THEME = _EDITORS / "flipjump-dark.tmTheme"
+
+# Keywords that introduce a name (def/ns) plus the bare keyword (rep). These
+# are the non-directive, non-type words excluded from macro-call detection.
+_KEYWORDS = {"def", "ns", "rep"}
+
+
+def _grammar() -> dict:
+    return json.loads(_CANONICAL_GRAMMAR.read_text(encoding="utf-8"))
+
+
+def _pattern_match_by_scope(grammar: dict, scope: str) -> str:
+    for rule in grammar["patterns"]:
+        if rule.get("name") == scope:
+            return rule["match"]
+    raise AssertionError(f"no top-level pattern with name {scope!r}")
+
+
+def _alternation_words(regex: str) -> set[str]:
+    """Pull the words out of a ``\\b(a|b|c)\\b`` style match."""
+    m = re.search(r"\(([A-Za-z_|]+)\)", regex)
+    assert m, f"no alternation group found in {regex!r}"
+    return set(m.group(1).split("|"))
+
+
+def test_macro_call_exclusion_matches_lexer():
+    """The negative-lookahead word-list in the macro-call rule must equal the
+    lexer's ``_NON_MACRO_LEAD_WORDS`` exactly."""
+    grammar = _grammar()
+    macro_rule = next(
+        r["match"]
+        for r in grammar["patterns"]
+        if "(?!(?:" in r.get("match", "")
+    )
+    inner = re.search(r"\(\?!\(\?:([^)]*)\)", macro_rule)
+    assert inner, "could not find the (?!(?:...)) exclusion group"
+    grammar_words = set(inner.group(1).split("|"))
+    assert grammar_words == set(_NON_MACRO_LEAD_WORDS)
+
+
+def test_directive_and_type_words_partition_the_exclusion_list():
+    """Directives + types + {def,ns,rep} must reconstruct the exclusion list,
+    and directives must not overlap types — ties both rules back to the single
+    exported constant."""
+    grammar = _grammar()
+    directives = _alternation_words(
+        _pattern_match_by_scope(grammar, "keyword.other.directive.flipjump")
+    )
+    types = _alternation_words(
+        _pattern_match_by_scope(grammar, "support.type.flipjump")
+    )
+    assert directives.isdisjoint(types)
+    assert directives | types | _KEYWORDS == set(_NON_MACRO_LEAD_WORDS)
+
+
+def test_bit_is_not_a_type():
+    """`bit` is deliberately NOT a type (the IDE colours it as an identifier)."""
+    grammar = _grammar()
+    types = _alternation_words(
+        _pattern_match_by_scope(grammar, "support.type.flipjump")
+    )
+    assert "bit" not in types
+
+
+def test_synced_copies_are_byte_identical_to_canonical():
+    """`npm run sync` copies the canonical grammar/theme into the per-editor
+    packages; the committed copies must match byte-for-byte."""
+    canonical_grammar = _CANONICAL_GRAMMAR.read_bytes()
+    for copy in (
+        _EDITORS / "vscode" / "syntaxes" / "flipjump.tmLanguage.json",
+        _EDITORS / "jetbrains" / "flipjump.tmLanguage.json",
+    ):
+        assert copy.read_bytes() == canonical_grammar, f"{copy} drifted; run `npm run sync`"
+
+    canonical_theme = _CANONICAL_THEME.read_bytes()
+    assert (_EDITORS / "jetbrains" / "flipjump-dark.tmTheme").read_bytes() == canonical_theme

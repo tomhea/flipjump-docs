@@ -46,6 +46,13 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# Editor-extension tooling build artifacts (the published copies live in
+# docs/source/_static/; package-lock.json IS committed so CI can `npm ci`).
+editors/**/node_modules/
+editors/vscode/*.vsix
+editors/test/preview.svg
+editors/test/preview.png
+
 # Local secrets (never commit)
 .env
 .env.local

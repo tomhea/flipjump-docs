@@ -1,0 +1,7 @@
+.vscode/**
+.gitignore
+**/*.map
+node_modules/**
+test/**
+preview.*
+**/.DS_Store

@@ -13,6 +13,30 @@ jobs:
       - name: Run actionlint
         uses: raven-actions/actionlint@205b530c5d9fa8f44ae9ed59f341a0db994aa6f8
 
+  grammar:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install editor tooling deps
+        run: cd editors && npm ci
+
+      - name: Check synced grammar copies are up to date
+        run: |
+          cd editors && npm run sync
+          git diff --exit-code -- vscode/syntaxes jetbrains
+
+      - name: Verify grammar scopes against the lexer contract
+        run: cd editors && npm run verify
+
   build-and-test:
     runs-on: ubuntu-24.04
     steps:
