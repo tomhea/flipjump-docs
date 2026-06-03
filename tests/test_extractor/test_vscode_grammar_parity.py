@@ -25,6 +25,7 @@ _EDITORS = _ROOT / "editors"
 _CANONICAL_GRAMMAR = _EDITORS / "grammars" / "flipjump.tmLanguage.json"
 _CANONICAL_THEME = _EDITORS / "flipjump-dark.tmTheme"
 _VSCODE_PKG = _EDITORS / "vscode" / "package.json"
+_COLORS_MJS = _EDITORS / "colors.mjs"
 
 _HEX = re.compile(r"#[0-9a-fA-F]{6}")
 
@@ -50,7 +51,7 @@ def _pattern_match_by_scope(grammar: dict, scope: str) -> str:
 
 def _alternation_words(regex: str) -> set[str]:
     """Pull the words out of a ``\\b(a|b|c)\\b`` style match."""
-    m = re.search(r"\(([A-Za-z_|]+)\)", regex)
+    m = re.search(r"\(([\w|]+)\)", regex)
     assert m, f"no alternation group found in {regex!r}"
     return set(m.group(1).split("|"))
 
@@ -109,6 +110,13 @@ def test_synced_copies_are_byte_identical_to_canonical():
 
 
 # ---- colour parity with the fj-dark Pygments style ----
+#
+# The fj-dark palette is mirrored by hand in three editor tables — the VS Code
+# `configurationDefaults` (editors/vscode/package.json), the JetBrains
+# `.tmTheme`, and the preview renderer's `editors/colors.mjs`. The canonical
+# source is the Pygments style. These tests assert every copy stays equal to it
+# (both the foreground colours and the bold/italic font styles), so the three
+# copies cannot silently diverge from each other or from the docs site.
 
 def _style_foreground_hexes() -> set[str]:
     """The distinct token foreground colours in the fj-dark Pygments style."""
@@ -118,23 +126,78 @@ def _style_foreground_hexes() -> set[str]:
     return out
 
 
-def _vscode_tokencolor_hexes() -> set[str]:
+def _style_styled_pairs() -> set[tuple[str, str]]:
+    """(hex, fontStyle) pairs the Pygments style marks bold/italic, e.g.
+    ``("#569cd6", "bold")`` for keywords and ``("#6a9955", "italic")`` for
+    comments."""
+    out: set[tuple[str, str]] = set()
+    for value in FlipJumpDarkStyle.styles.values():
+        hexes = _hexes(value)
+        for style in ("bold", "italic"):
+            if style in value:
+                out |= {(h, style) for h in hexes}
+    return out
+
+
+def _vscode_rules() -> list[dict]:
     pkg = json.loads(_VSCODE_PKG.read_text(encoding="utf-8"))
-    rules = pkg["contributes"]["configurationDefaults"][
+    return pkg["contributes"]["configurationDefaults"][
         "editor.tokenColorCustomizations"
     ]["textMateRules"]
-    out: set[str] = set()
-    for rule in rules:
-        fg = rule["settings"].get("foreground")
-        if fg:
-            out.add(fg.lower())
+
+
+def _vscode_foreground_hexes() -> set[str]:
+    return {
+        r["settings"]["foreground"].lower()
+        for r in _vscode_rules()
+        if r["settings"].get("foreground")
+    }
+
+
+def _vscode_styled_pairs() -> set[tuple[str, str]]:
+    return {
+        (r["settings"]["foreground"].lower(), r["settings"]["fontStyle"])
+        for r in _vscode_rules()
+        if r["settings"].get("fontStyle") and r["settings"].get("foreground")
+    }
+
+
+def _tmtheme_styled_pairs() -> set[tuple[str, str]]:
+    import plistlib
+
+    theme = plistlib.loads(_CANONICAL_THEME.read_bytes())
+    out: set[tuple[str, str]] = set()
+    for entry in theme["settings"]:
+        s = entry.get("settings", {})
+        if s.get("fontStyle") and s.get("foreground"):
+            out.add((s["foreground"].lower(), s["fontStyle"]))
     return out
+
+
+# Each SCOPE_COLORS entry in colors.mjs looks like:
+#   ["scope.name", { foreground: "#aabbcc", fontStyle: "bold" }],
+_MJS_ENTRY = re.compile(
+    r'foreground:\s*"(#[0-9a-fA-F]{6})"(?:\s*,\s*fontStyle:\s*"(\w+)")?'
+)
+
+
+def _colors_mjs_entries() -> list[tuple[str, str | None]]:
+    return [
+        (fg.lower(), style or None)
+        for fg, style in _MJS_ENTRY.findall(_COLORS_MJS.read_text(encoding="utf-8"))
+    ]
 
 
 def test_vscode_colours_match_the_fj_dark_style():
     """The VS Code extension's token colours must be exactly the foreground
     palette of the docs-site fj-dark style — no more, no fewer."""
-    assert _vscode_tokencolor_hexes() == _style_foreground_hexes()
+    assert _vscode_foreground_hexes() == _style_foreground_hexes()
+
+
+def test_colors_mjs_matches_the_fj_dark_style():
+    """The preview renderer's colour table must use the same palette."""
+    mjs_hexes = {fg for fg, _ in _colors_mjs_entries()}
+    assert mjs_hexes == _style_foreground_hexes()
 
 
 def test_jetbrains_theme_covers_the_fj_dark_palette():
@@ -142,3 +205,14 @@ def test_jetbrains_theme_covers_the_fj_dark_palette():
     additionally carries editor-chrome colours, hence subset not equality)."""
     theme_hexes = _hexes(_CANONICAL_THEME.read_text(encoding="utf-8"))
     assert _style_foreground_hexes() <= theme_hexes
+
+
+def test_bold_italic_font_styles_agree_everywhere():
+    """The bold/italic emphases must match the Pygments style across all three
+    editor tables — catches a colour being styled in one place but not another
+    (e.g. bold `def` in VS Code but plain in JetBrains)."""
+    expected = _style_styled_pairs()
+    mjs_pairs = {(fg, style) for fg, style in _colors_mjs_entries() if style}
+    assert _vscode_styled_pairs() == expected
+    assert _tmtheme_styled_pairs() == expected
+    assert mjs_pairs == expected

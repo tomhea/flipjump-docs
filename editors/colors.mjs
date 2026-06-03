@@ -1,7 +1,10 @@
 // The fj-dark colour map, copied from docs/_ext/fj_stl_extract/pygments_style.py
-// (which itself mirrors the FlipJump IDE's Monaco `fj-dark` theme). Single
-// source of truth for both the preview renderer and the VS Code
-// configurationDefaults rules emitted at build time.
+// (which itself mirrors the FlipJump IDE's Monaco `fj-dark` theme). Used by the
+// preview renderer (test/render-preview.mjs). The same palette is mirrored by
+// hand in editors/vscode/package.json (configurationDefaults) and
+// editors/flipjump-dark.tmTheme; tests/test_extractor/test_vscode_grammar_parity.py
+// asserts all three copies stay equal to the Pygments style, so they cannot
+// silently diverge.
 export const BACKGROUND = "#1e1e1e";
 export const FOREGROUND = "#d4d4d4";
 
