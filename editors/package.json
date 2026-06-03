@@ -12,8 +12,10 @@
     "check": "npm run sync && node test/verify-scopes.mjs"
   },
   "devDependencies": {
-    "@resvg/resvg-js": "^2.6.2",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.2.0"
+  },
+  "optionalDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
   }
 }

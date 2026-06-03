@@ -27,7 +27,7 @@ jobs:
           node-version: "22"
 
       - name: Install editor tooling deps
-        run: cd editors && npm ci
+        run: cd editors && npm ci --omit=optional
 
       - name: Check synced grammar copies are up to date
         run: |

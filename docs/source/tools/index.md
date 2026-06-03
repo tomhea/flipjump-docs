@@ -1,6 +1,6 @@
 # Companion tools and resources
 
-Companion tools and resources to go beyond this docs site:
+Places to go beyond this docs site:
 
 ::::{grid} 1 1 2 2
 :gutter: 3
