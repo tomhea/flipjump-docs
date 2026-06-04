@@ -1,6 +1,6 @@
 # Companion tools and resources
 
-Five places to go beyond this docs site:
+Places to go beyond this docs site:
 
 ::::{grid} 1 1 2 2
 :gutter: 3
@@ -30,6 +30,15 @@ C-to-FlipJump compiler. Pipeline: C → RISC-V → FlipJump.
 A Claude Code / Agent SDK skill that teaches Claude to write, debug, and verify FlipJump programs end-to-end against the `fj` CLI.
 
 **[Download zip ↓](../_static/writing-flipjump-stl-code.zip)**
+:::
+
+:::{grid-item-card} 🎨 Editor syntax highlighting
+:link: editor-highlighting
+:link-type: doc
+
+Highlight `.fj` files in VS Code and JetBrains IDEs with the same `fj-dark` colours as the IDE and these docs.
+
+**[VS Code ↓](../_static/flipjump-vscode.vsix)** · **[JetBrains ↓](../_static/flipjump-jetbrains-textmate.zip)**
 :::
 
 :::{grid-item-card} 🧠 bf2fj
@@ -63,6 +72,7 @@ Background commentary on the language design, computational classification, and 
 ide
 c2fj
 claude-skill
+editor-highlighting
 bf2fj
 flip-jump
 esolangs

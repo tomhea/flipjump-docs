@@ -1,0 +1,126 @@
+{
+  "name": "flipjump",
+  "displayName": "FlipJump",
+  "description": "Syntax highlighting for the FlipJump assembly language (.fj), matching the FlipJump IDE and docs.",
+  "version": "0.1.0",
+  "publisher": "tomhea",
+  "license": "BSD-2-Clause",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "flipjump",
+    "fj",
+    "esolang",
+    "assembly",
+    "syntax highlighting"
+  ],
+  "homepage": "https://fjdocs.tomhe.app/tools/editor-highlighting.html",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tomhea/flipjump-docs.git",
+    "directory": "editors/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/tomhea/flipjump-docs/issues"
+  },
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "flipjump",
+        "aliases": [
+          "FlipJump",
+          "fj"
+        ],
+        "extensions": [
+          ".fj"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "flipjump",
+        "scopeName": "source.flipjump",
+        "path": "./syntaxes/flipjump.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          {
+            "scope": "keyword.control.flipjump",
+            "settings": { "foreground": "#569cd6", "fontStyle": "bold" }
+          },
+          {
+            "scope": [
+              "support.type.flipjump",
+              "entity.name.label.flipjump"
+            ],
+            "settings": { "foreground": "#4ec9b0" }
+          },
+          {
+            "scope": "keyword.other.directive.flipjump",
+            "settings": { "foreground": "#e07b39" }
+          },
+          {
+            "scope": [
+              "variable.other.flipjump",
+              "variable.other.member.flipjump"
+            ],
+            "settings": { "foreground": "#9cdcfe" }
+          },
+          {
+            "scope": "variable.other.constant.flipjump",
+            "settings": { "foreground": "#c792ea" }
+          },
+          {
+            "scope": [
+              "entity.name.function.flipjump",
+              "entity.name.namespace.flipjump"
+            ],
+            "settings": { "foreground": "#56c8c8" }
+          },
+          {
+            "scope": "entity.name.function.call.flipjump",
+            "settings": { "foreground": "#e8c47a" }
+          },
+          {
+            "scope": [
+              "constant.numeric.hex.flipjump",
+              "constant.numeric.binary.flipjump",
+              "constant.numeric.integer.flipjump"
+            ],
+            "settings": { "foreground": "#b5cea8" }
+          },
+          {
+            "scope": [
+              "string.quoted.double.flipjump",
+              "string.quoted.single.flipjump"
+            ],
+            "settings": { "foreground": "#ce9178" }
+          },
+          {
+            "scope": "comment.line.double-slash.flipjump",
+            "settings": { "foreground": "#6a9955", "fontStyle": "italic" }
+          },
+          {
+            "scope": [
+              "keyword.operator.flipjump",
+              "punctuation.flipjump"
+            ],
+            "settings": { "foreground": "#d4d4d4" }
+          }
+        ]
+      }
+    }
+  }
+}
