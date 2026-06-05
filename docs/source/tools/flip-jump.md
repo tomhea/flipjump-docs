@@ -34,6 +34,6 @@ Latest tagged release is visible at [github.com/tomhea/flip-jump/releases](https
 
 ## See also
 
-- [The FlipJump IDE](ide.md) — the browser-based editor + interpreter that wraps this repo's toolchain in WebAssembly.
+- [The FlipJump IDE](ide.md) — a browser-based editor that runs this repo's toolchain on the server and streams the output back.
 - [esolangs.org/FlipJump](esolangs.md) — the language's entry on the esolangs wiki.
 - [Standard Library reference](../stl/index.md) — auto-generated from this repo's `flipjump/stl/`.

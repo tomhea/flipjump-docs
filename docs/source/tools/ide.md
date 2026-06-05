@@ -10,28 +10,30 @@
 
 ## What it is
 
-An in-browser FlipJump development environment: editor with syntax highlighting, the assembler, and the interpreter — all compiled to WebAssembly and running locally in your browser tab. No server round-trip, no install.
+A browser-based FlipJump development environment — nothing to install, just open the link. The editor runs in your browser; the **assembler and interpreter run on the server** (the real `fj` toolchain), and your program's output streams back live over a WebSocket as it runs.
 
 The editor is Monaco (the same engine VS Code uses). The tokenizer that powers its syntax highlighting is the source of truth for [this site's Pygments lexer](../language/lexical.md) too, so code blocks look identical across both.
 
 ## What you can do
 
-- **Try every getting-started example** without installing anything.
-- **Load pre-baked sample programs** from the file menu — Hello World, a calculator, the prime sieve, a function-call demo, and more.
-- **Step through execution** one FlipJump op at a time.
-- **Watch memory** as it changes — the self-modifying-code patterns from the [Standard Library](../stl/index.md) become visible.
-- **Save and share** programs via the URL.
+- **Write and run FlipJump** straight from the browser — `fj` assembles and runs your code on the server and streams `stdout`/`stderr` into the terminal in real time.
+- **Feed it input** — the terminal is interactive, so programs that read `stdin` work too.
+- **Compile to `.fjm`** and download the assembled binary, or re-run an already-compiled image without recompiling.
+- **Load pre-baked sample programs** — Hello World, a calculator, the prime sieve, a function-call demo, and more.
+- **Import from other languages** — convert Brainfuck with [`bf2fj`](bf2fj.md) or C with [`c2fj`](c2fj.md) and run the result.
+- **Browse the language reference and STL** in a side panel while you work.
+- **Work across multiple files** in a file tree; your open project persists in the browser between visits.
 
 ## When to use it vs the local `fj` toolchain
 
 | Use case | Use this |
 |---|---|
-| First touch — try without committing | IDE |
+| First touch — try without installing anything | IDE |
 | Building a small demo | IDE |
 | Reading STL macro source while experimenting | IDE (side-by-side panels) |
-| Long-running simulations | Local `fj` (no browser-tab overhead) |
+| Long-running simulations | Local `fj` (the hosted runner has time limits) |
 | Custom toolchain integration (Makefiles, CI) | Local `fj` |
-| Multi-file projects | Local `fj` (the IDE is single-file for now) |
+| Keeping large projects under version control | Local `fj` |
 
 ## Related
 

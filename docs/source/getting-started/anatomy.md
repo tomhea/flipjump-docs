@@ -90,4 +90,4 @@ The assembler resolves names by walking namespaces; you don't need to forward-de
 - **Browse companion tools**:
   - [c2fj](https://github.com/tomhea/c2fj) — compile C programs to FlipJump (in-depth tour lands in v0.8)
   - [bf2fj](https://github.com/tomhea/bf2fj) — compile Brainfuck to FlipJump (in-depth tour lands in v0.8)
-  - [The FlipJump IDE](https://fj.tomhe.app) — in-browser editor + compiler + runtime
+  - [The FlipJump IDE](https://fj.tomhe.app) — browser-based editor backed by the `fj` toolchain
