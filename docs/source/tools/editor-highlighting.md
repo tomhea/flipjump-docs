@@ -22,13 +22,17 @@ Syntax highlighting for `.fj` files in [VS Code](https://code.visualstudio.com)
 and [JetBrains IDEs](https://www.jetbrains.com) (IntelliJ IDEA, PyCharm, CLion,
 WebStorm, …).
 
-Both editors are driven by **one shared TextMate grammar**, ported from the
-[FlipJump IDE](ide.md)'s Monaco tokenizer and kept in lock-step with [this site's
-Pygments lexer](../language/lexical.md) by an automated parity test. So a `.fj`
-file looks the same in your editor, in the IDE, and in the code blocks here —
-same `fj-dark` palette: `def`/`ns`/`rep` in blue, macro calls in gold, labels in
-teal, constants in purple, directives in orange, strings, numbers, and comments
-all coloured to match.
+The classification is ported from the [FlipJump IDE](ide.md)'s Monaco tokenizer
+and kept in lock-step with [this site's Pygments lexer](../language/lexical.md)
+by automated parity tests. So a `.fj` file gets the same `fj-dark` palette as the
+IDE and the code blocks here — `def`/`ns`/`rep` in blue, macro calls in gold,
+macro definitions in cyan, labels in teal, constants in purple, directives in
+orange, plus strings, numbers, and comments.
+
+For exact colours, **VS Code** uses a TextMate grammar + scoped colour rules, and
+**JetBrains** uses a native plugin with its own lexer (its TextMate engine can't
+reproduce the per-token colours — see below). A lighter, *approximate* JetBrains
+TextMate bundle is also available.
 
 ## VS Code
 
@@ -61,27 +65,47 @@ Want to tweak them? Add this to your `settings.json` and edit the hexes:
 
 ## JetBrains IDEs
 
-This is a **TextMate bundle**, not a plugin — don't use *Settings → Plugins →
-Install Plugin from Disk* (it will fail). Import it through the built-in TextMate
-Bundles support instead:
+Two options, depending on whether you want exact colours.
 
-1. Download and unzip the bundle above → you get a `flipjump-jetbrains-textmate/` folder.
-2. *Settings → Editor → TextMate Bundles → `+`* and select that **folder** (the one containing `package.json`).
+### Native plugin — exact `fj-dark` (recommended)
+
+A real IntelliJ Platform plugin with its own lexer, so it reproduces the VS Code
+colours **exactly**, including macro-call (gold) vs macro-definition (cyan),
+labels, constants, and the rest — things the TextMate route can't do in JetBrains.
+
+It's distributed as a normal plugin (this one *does* use the Plugins page):
+
+1. Build the zip: `cd editors/jetbrains-plugin && gradle buildPlugin` →
+   `build/distributions/flipjump-jetbrains-*.zip`. (First build downloads the
+   IntelliJ Platform.)
+2. *Settings → **Plugins** → ⚙ → Install Plugin from Disk…* → select the zip → restart.
+3. Open any `.fj` file. Tweak colours under *Settings → Editor → Color Scheme → FlipJump*.
+
+A JetBrains Marketplace listing is planned so this becomes a one-click install.
+
+### TextMate bundle — lightweight, approximate
+
+The `.zip` above is a TextMate bundle (**not** a plugin — don't use *Install
+Plugin from Disk* for it). It needs no build:
+
+1. Unzip it → a `flipjump-jetbrains-textmate/` folder.
+2. *Settings → Editor → **TextMate Bundles** → `+`* and select that folder.
 3. Open any `.fj` file.
 
-For the exact `fj-dark` palette, the bundle includes a `flipjump-dark.tmTheme`:
-*Settings → Editor → Color Scheme → TextMate → **FlipJump Dark***. Otherwise the
-grammar's standard scopes are coloured by your active scheme (looks good in
-Darcula out of the box).
+JetBrains colours TextMate tokens from your active IDE scheme via a fixed,
+built-in scope map and [can't load custom TextMate
+themes](https://youtrack.jetbrains.com/issue/IJPL-34298), so this route is
+approximate — macro calls and definitions share a colour and labels stay plain.
+Use the native plugin above for exact parity.
 
 ## Source
 
-Both packages live in the docs repo at
-[`tomhea/flipjump-docs`](https://github.com/tomhea/flipjump-docs) under
-`editors/` — the VS Code extension in `editors/vscode`, the JetBrains bundle in
-`editors/jetbrains`, and the shared grammar in
-`editors/grammars/flipjump.tmLanguage.json`. Bug reports and improvements welcome
-there.
+Everything lives in the docs repo at
+[`tomhea/flipjump-docs`](https://github.com/tomhea/flipjump-docs) under `editors/`
+— the VS Code extension in `editors/vscode`, the JetBrains native plugin in
+`editors/jetbrains-plugin`, the JetBrains TextMate bundle in `editors/jetbrains`,
+and the shared grammar in `editors/grammars/flipjump.tmLanguage.json`. Bug reports
+and improvements welcome there.
 
 ## Related
 

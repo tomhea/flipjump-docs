@@ -53,6 +53,10 @@ editors/vscode/*.vsix
 editors/test/preview.svg
 editors/test/preview.png
 
+# JetBrains plugin (Gradle) build artifacts.
+editors/jetbrains-plugin/.gradle/
+editors/jetbrains-plugin/build/
+
 # Local secrets (never commit)
 .env
 .env.local

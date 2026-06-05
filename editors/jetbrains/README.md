@@ -31,14 +31,21 @@ search for "TextMate" in *Settings → Plugins* shows it disabled, enable it).
 
 Out of the box the grammar's standard scopes (`keyword`, `string`, `comment`,
 `entity.name.function`, …) are coloured by your active IDE colour scheme (looks
-good in Darcula).
+reasonable in Darcula).
 
-### Exact `fj-dark` colours (optional)
+### Want the exact fj-dark colours?
 
-To match the website/IDE palette precisely, load the bundled TextMate theme:
+JetBrains' TextMate support colours tokens from your **IDE colour scheme** via a
+fixed, built-in scope→colour map, and it [does not support custom TextMate
+themes](https://youtrack.jetbrains.com/issue/IJPL-34298), so the bundled
+`flipjump-dark.tmTheme` cannot be applied and this bundle can't reproduce the
+website colours exactly (e.g. macro calls and macro definitions collapse to one
+colour, and labels are left plain).
 
-*Settings → Editor → Color Scheme → TextMate* — pick **FlipJump Dark**, or import
-`flipjump-dark.tmTheme` if it isn't listed.
+For pixel-exact `fj-dark` parity in JetBrains, install the **native plugin**
+instead — see [`editors/jetbrains-plugin`](../jetbrains-plugin/) /
+the [docs site](https://fjdocs.tomhe.app/tools/editor-highlighting.html). The
+`.tmTheme` is kept here only as a reference for the palette.
 
 ## Source
 
