@@ -15,6 +15,7 @@ namespaces
 directives
 types
 io
+pointers
 complexity
 ```
 
@@ -26,4 +27,5 @@ complexity
 - **Memory layout** — `pad`, `reserve`, `segment`, `wflip`. See [Directives](directives.md).
 - **Built-in names** — `w`, `dw`, `dbit`, `bit`. See [Types and built-in names](types.md).
 - **I/O** — the special IO opcode addresses. See [Input / Output](io.md).
+- **Pointers, stacks & functions** — run-time indirection, a stack, and a calling convention. See [Pointers, stacks & functions](pointers.md).
 - **Complexity notation** — what the `@` symbol means in the STL's annotations. See [Complexity notation](complexity.md).
