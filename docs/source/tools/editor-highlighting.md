@@ -8,12 +8,20 @@
 ⬇ Download VS Code extension (`.vsix`)
 ```
 
-```{button-link} ../_static/flipjump-jetbrains-textmate.zip
+```{button-link} ../_static/flipjump-jetbrains.zip
 :color: primary
 :expand:
-:tooltip: Download the JetBrains TextMate bundle
+:tooltip: Download the native JetBrains plugin (exact fj-dark colours)
 
-⬇ Download JetBrains bundle (`.zip`)
+⬇ Download JetBrains plugin (`.zip`)
+```
+
+```{button-link} ../_static/flipjump-jetbrains-textmate.zip
+:color: secondary
+:expand:
+:tooltip: Download the JetBrains TextMate bundle (approximate colours)
+
+⬇ Download JetBrains TextMate bundle (`.zip`)
 ```
 
 ## What it is
@@ -75,8 +83,9 @@ labels, constants, and the rest — things the TextMate route can't do in JetBra
 
 It's distributed as a normal plugin (this one *does* use the Plugins page):
 
-1. Build the zip: `cd editors/jetbrains-plugin && ./gradlew buildPlugin` →
-   `build/distributions/flipjump-jetbrains-*.zip`. (First build downloads the
+1. Download the `.zip` above. (Or build it yourself:
+   `cd editors/jetbrains-plugin && ./gradlew buildPlugin` →
+   `build/distributions/flipjump-jetbrains-*.zip`; the first build downloads the
    IntelliJ Platform.)
 2. *Settings → **Plugins** → ⚙ → Install Plugin from Disk…* → select the zip → restart.
 3. Open any `.fj` file. Tweak colours under *Settings → Editor → Color Scheme → FlipJump*.
