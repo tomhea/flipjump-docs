@@ -61,10 +61,12 @@ Want to tweak them? Add this to your `settings.json` and edit the hexes:
 
 ## JetBrains IDEs
 
-JetBrains IDEs ship the **TextMate Bundles** plugin (bundled by default).
+This is a **TextMate bundle**, not a plugin — don't use *Settings → Plugins →
+Install Plugin from Disk* (it will fail). Import it through the built-in TextMate
+Bundles support instead:
 
-1. Download and unzip the bundle above.
-2. *Settings → Editor → TextMate Bundles → `+`* and select the unzipped folder.
+1. Download and unzip the bundle above → you get a `flipjump-jetbrains-textmate/` folder.
+2. *Settings → Editor → TextMate Bundles → `+`* and select that **folder** (the one containing `package.json`).
 3. Open any `.fj` file.
 
 For the exact `fj-dark` palette, the bundle includes a `flipjump-dark.tmTheme`:

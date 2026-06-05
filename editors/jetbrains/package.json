@@ -1,0 +1,30 @@
+{
+  "name": "flipjump",
+  "displayName": "FlipJump",
+  "description": "Syntax highlighting for the FlipJump assembly language (.fj).",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "flipjump",
+        "aliases": [
+          "FlipJump",
+          "fj"
+        ],
+        "extensions": [
+          ".fj"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "flipjump",
+        "scopeName": "source.flipjump",
+        "path": "./flipjump.tmLanguage.json"
+      }
+    ]
+  }
+}

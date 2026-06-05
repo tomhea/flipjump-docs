@@ -50,7 +50,7 @@ npm run sync
 # JetBrains bundle -> .zip (a folder named flipjump-jetbrains-textmate/)
 stage=$(mktemp -d)
 mkdir "$stage/flipjump-jetbrains-textmate"
-cp jetbrains/flipjump.tmLanguage.json jetbrains/flipjump-dark.tmTheme jetbrains/README.md "$stage/flipjump-jetbrains-textmate/"
+cp jetbrains/package.json jetbrains/flipjump.tmLanguage.json jetbrains/flipjump-dark.tmTheme jetbrains/README.md "$stage/flipjump-jetbrains-textmate/"
 ( cd "$stage" && zip -r -X - flipjump-jetbrains-textmate ) > ../docs/source/_static/flipjump-jetbrains-textmate.zip
 ```
 

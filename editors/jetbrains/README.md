@@ -6,19 +6,27 @@ GoLand, Rider, etc. It reuses the **same TextMate grammar** as the FlipJump VS
 Code extension, so highlighting matches the [IDE](https://fj.tomhe.app) and the
 [docs site](https://fjdocs.tomhe.app).
 
-This folder is a TextMate bundle:
+This folder is a TextMate bundle (in VS Code-extension format — a `package.json`
+manifest plus the grammar):
 
-- `flipjump.tmLanguage.json` — the grammar (associates `.fj` files, classifies tokens)
+- `package.json` — the manifest JetBrains reads to find the grammar + `.fj` association
+- `flipjump.tmLanguage.json` — the grammar (classifies tokens)
 - `flipjump-dark.tmTheme` — optional colour theme reproducing the exact `fj-dark` palette
 
 ## Install
 
-JetBrains IDEs ship the **TextMate Bundles** plugin (bundled by default; if not,
-enable it in *Settings → Plugins*).
+> **This is a TextMate bundle, not a plugin.** Do **not** use *Settings → Plugins
+> → Install Plugin from Disk* (that will fail with "Failed to load plugin
+> descriptor"). Use the TextMate Bundles importer below.
+
+JetBrains IDEs ship the **TextMate Bundles** support (bundled by default; if a
+search for "TextMate" in *Settings → Plugins* shows it disabled, enable it).
 
 1. Download and unzip `flipjump-jetbrains-textmate.zip` from the
-   [docs site](https://fjdocs.tomhe.app/tools/editor-highlighting.html).
-2. *Settings → Editor → TextMate Bundles → `+`* and select the unzipped folder.
+   [docs site](https://fjdocs.tomhe.app/tools/editor-highlighting.html). You get a
+   folder `flipjump-jetbrains-textmate/`.
+2. *Settings → Editor → TextMate Bundles → `+`* and select that **folder** (the
+   one containing `package.json`).
 3. Open any `.fj` file — it's now highlighted.
 
 Out of the box the grammar's standard scopes (`keyword`, `string`, `comment`,
