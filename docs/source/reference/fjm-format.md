@@ -63,7 +63,7 @@ When `data_length < segment_length`, the trailing words are **zero-filled** — 
 
 ## How it's loaded and run
 
-`fj --run` (and the WebAssembly build behind the [online IDE](../tools/ide.md)) reads the file like this:
+`fj --run` reads the file like this (the same loading the [online IDE](../tools/ide.md) does to run your program):
 
 1. Parse the header, validate the magic, version and `reserved` fields.
 2. Read `segment_num` segment descriptors.

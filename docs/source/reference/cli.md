@@ -59,7 +59,7 @@ Ignored when `--run` is given.
 | `-w`, `--width WIDTH` | Memory width in bits — one of `8`, `16`, `32`, `64`. **Default `64`.** |
 | `-v`, `--version VERSION` | `.fjm` format version (see [The `.fjm` binary format](fjm-format.md)). Defaults to **3 (Compressed)** when `--outfile` is given, **1 (Normal)** otherwise. |
 | `-f`, `--flags FLAGS` | Default `.fjm` unpacking & running flags (integer). Default `0`. |
-| `--lzma_preset N` | LZMA2 compression preset `0`–`9`, used when `version=3`. |
+| `--lzma_preset N` | LZMA2 compression preset `0`–`9` (default `6`), used when `version=3`. |
 | `--werror` | Treat all assemble warnings as errors. |
 | `--max_recursion_depth N` | Maximum macro-recursion depth the compiler allows. |
 | `--no_stl` | Don't assemble/link the [standard library](../stl/index.md). You're then on your own for startup, I/O and everything else. |
