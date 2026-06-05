@@ -75,7 +75,7 @@ labels, constants, and the rest — things the TextMate route can't do in JetBra
 
 It's distributed as a normal plugin (this one *does* use the Plugins page):
 
-1. Build the zip: `cd editors/jetbrains-plugin && gradle buildPlugin` →
+1. Build the zip: `cd editors/jetbrains-plugin && ./gradlew buildPlugin` →
    `build/distributions/flipjump-jetbrains-*.zip`. (First build downloads the
    IntelliJ Platform.)
 2. *Settings → **Plugins** → ⚙ → Install Plugin from Disk…* → select the zip → restart.

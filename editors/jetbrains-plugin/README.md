@@ -32,15 +32,15 @@ Requires JDK 17+. The first build downloads the IntelliJ Platform.
 
 ```sh
 cd editors/jetbrains-plugin
-gradle test          # run the lexer parity tests
-gradle buildPlugin   # -> build/distributions/flipjump-jetbrains-<version>.zip
+./gradlew test          # run the lexer parity tests
+./gradlew buildPlugin   # -> build/distributions/flipjump-jetbrains-<version>.zip
 ```
 
-To try it in a sandbox IDE: `gradle runIde`.
+To try it in a sandbox IDE: `./gradlew runIde`.
 
 ## Publish
 
-`gradle publishPlugin` to the [JetBrains Marketplace](https://plugins.jetbrains.com)
+`./gradlew publishPlugin` to the [JetBrains Marketplace](https://plugins.jetbrains.com)
 (needs a `PUBLISH_TOKEN`); or upload the built zip manually to the Marketplace.
 
 ## License
