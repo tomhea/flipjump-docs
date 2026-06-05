@@ -12,6 +12,7 @@ repositories {
     mavenCentral()
     intellijPlatform {
         defaultRepositories()
+        intellijDependencies()
     }
 }
 
@@ -22,6 +23,9 @@ dependencies {
         // (PyCharm, CLion, WebStorm, ...).
         intellijIdeaCommunity("2024.2")
         testFramework(TestFrameworkType.Platform)
+        // Required by the 2.x instrumentCode task (bytecode @NotNull/form
+        // instrumentation); not pulled in transitively at this plugin version.
+        instrumentationTools()
     }
     testImplementation("junit:junit:4.13.2")
 }
