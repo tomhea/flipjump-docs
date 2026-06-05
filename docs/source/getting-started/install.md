@@ -31,7 +31,7 @@ git clone https://github.com/tomhea/flip-jump.git
 
 ## Don't want to install anything?
 
-The [FlipJump IDE at fj.tomhe.app](https://fj.tomhe.app) is the full toolchain compiled to WebAssembly — it runs the same assembler and interpreter as the CLI, entirely in your browser. Pre-loaded examples include Hello World, a prime sieve, and a calculator.
+The [FlipJump IDE at fj.tomhe.app](https://fj.tomhe.app) runs the same assembler and interpreter as the CLI for you — you write code in the browser and it runs on the server, with output streamed back live. Pre-loaded examples include Hello World, a prime sieve, and a calculator.
 
 ## Editor support
 

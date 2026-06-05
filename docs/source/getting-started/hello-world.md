@@ -53,7 +53,7 @@ stl.loop
 The halt. Expands to `;$ - dw` — a self-loop on the current instruction whose flip address is `0` (outside the instruction body), which is the FlipJump runtime's halt condition.
 
 ```{tip}
-Want to skip the local install? Paste the same three lines into the [FlipJump IDE](https://fj.tomhe.app) and click Run. The IDE runs the exact same assembler + interpreter compiled to WebAssembly.
+Want to skip the local install? Paste the same three lines into the [FlipJump IDE](https://fj.tomhe.app) and click Run. The IDE runs the exact same assembler + interpreter (the real `fj` toolchain) for you.
 ```
 
 ## Variations
