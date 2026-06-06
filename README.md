@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://fjdocs.tomhe.app">
-    <img src="docs/source/_static/fjdocs.png" alt="FlipJump Docs — fjdocs.tomhe.app" width="820">
+    <img src="assets/fjdocs.png" alt="FlipJump Docs site at fjdocs.tomhe.app" width="820">
   </a>
 </p>
 
@@ -65,11 +65,12 @@ A weekly GitHub Actions cron (`.github/workflows/submodule-bump.yml`) does this 
 
 ## Contributing
 
-- **Never push to `main`.** Open a PR from a feature branch. (Branch protection will be enabled to enforce this once the bootstrap PRs land.)
-- **TDD**: every PR includes a failing-then-passing test for whatever it changes (pytest for Python, `sphinx-build -W` for content, `actionlint` for workflows).
-- **Branch naming**: `milestone-<n>-<slug>` for milestone work, `setup/<slug>` for setup tasks, `fix/<slug>` for bug fixes.
-- **Merge with `--no-ff`** so each milestone appears in `git log --first-parent`.
-- Code review is performed by a strict code-review subagent before merge.
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** and the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+In short: **never push to `main`** — branch protection enforces pull requests. Open a
+PR from a feature branch, and ship every change with a test that CI runs (`pytest`
+for the Python tooling, a clean `cd docs && make html` for content, and `actionlint`
+for workflows).
 
 ## Deploy
 

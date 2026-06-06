@@ -2,7 +2,7 @@
   "name": "flipjump-editors",
   "version": "0.1.0",
   "private": true,
-  "description": "Tooling that builds and verifies the FlipJump TextMate grammar shared by the VS Code extension and the JetBrains bundle.",
+  "description": "Tooling that builds and verifies the FlipJump TextMate grammar that drives the VS Code extension.",
   "license": "BSD-2-Clause",
   "type": "module",
   "scripts": {

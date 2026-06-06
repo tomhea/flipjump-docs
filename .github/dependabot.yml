@@ -18,6 +18,14 @@ updates:
     commit-message:
       prefix: "deps(docs)"
 
+  # Root pyproject.toml (the dev extras: pytest, pyyaml).
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+
   # Node tooling for the shared grammar + VS Code extension.
   - package-ecosystem: "npm"
     directory: "/editors"
