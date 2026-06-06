@@ -1,5 +1,11 @@
 # flipjump-docs
 
+<p align="center">
+  <a href="https://fjdocs.tomhe.app">
+    <img src="docs/source/_static/fjdocs.png" alt="FlipJump Docs — fjdocs.tomhe.app" width="820">
+  </a>
+</p>
+
 [![Deploy docs](https://github.com/tomhea/flipjump-docs/actions/workflows/deploy.yml/badge.svg)](https://github.com/tomhea/flipjump-docs/actions/workflows/deploy.yml)
 [![PR build](https://github.com/tomhea/flipjump-docs/actions/workflows/pr-build.yml/badge.svg)](https://github.com/tomhea/flipjump-docs/actions/workflows/pr-build.yml)
 [![License: BSD-2-Clause](https://img.shields.io/badge/License-BSD--2--Clause-blue.svg)](LICENSE)
