@@ -1,0 +1,29 @@
+<idea-plugin>
+    <id>app.tomhe.flipjump</id>
+    <name>FlipJump</name>
+    <vendor url="https://fjdocs.tomhe.app">flipjump</vendor>
+
+    <description><![CDATA[
+        Syntax highlighting for the <b>FlipJump</b> assembly language (<code>.fj</code>) —
+        the one-instruction esoteric language. Colours match the
+        <a href="https://fj.tomhe.app">FlipJump IDE</a> and the
+        <a href="https://fjdocs.tomhe.app">docs site</a> (the fj-dark palette),
+        including distinct colours for macro definitions vs. macro calls, labels,
+        constants, directives, types, numbers, strings, and comments.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType
+            name="FlipJump"
+            implementationClass="app.tomhe.flipjump.FlipJumpFileType"
+            fieldName="INSTANCE"
+            language="FlipJump"
+            extensions="fj"/>
+        <lang.syntaxHighlighterFactory
+            language="FlipJump"
+            implementationClass="app.tomhe.flipjump.FlipJumpSyntaxHighlighterFactory"/>
+        <colorSettingsPage implementation="app.tomhe.flipjump.FlipJumpColorSettingsPage"/>
+    </extensions>
+</idea-plugin>

@@ -51,6 +51,7 @@ jobs:
           diff <(unzip -p "$vsix" extension/syntaxes/flipjump.tmLanguage.json) editors/vscode/syntaxes/flipjump.tmLanguage.json
           diff <(unzip -p "$vsix" extension/package.json) editors/vscode/package.json
           diff <(unzip -p "$vsix" extension/language-configuration.json) editors/vscode/language-configuration.json
+          diff <(unzip -p "$zip" flipjump-jetbrains-textmate/package.json) editors/jetbrains/package.json
           diff <(unzip -p "$zip" flipjump-jetbrains-textmate/flipjump.tmLanguage.json) editors/grammars/flipjump.tmLanguage.json
           diff <(unzip -p "$zip" flipjump-jetbrains-textmate/flipjump-dark.tmTheme) editors/flipjump-dark.tmTheme
           echo "Shipped artifacts are up to date with editors/ sources."

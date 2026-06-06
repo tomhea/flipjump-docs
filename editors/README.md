@@ -50,7 +50,7 @@ npm run sync
 # JetBrains bundle -> .zip (a folder named flipjump-jetbrains-textmate/)
 stage=$(mktemp -d)
 mkdir "$stage/flipjump-jetbrains-textmate"
-cp jetbrains/flipjump.tmLanguage.json jetbrains/flipjump-dark.tmTheme jetbrains/README.md "$stage/flipjump-jetbrains-textmate/"
+cp jetbrains/package.json jetbrains/flipjump.tmLanguage.json jetbrains/flipjump-dark.tmTheme jetbrains/README.md "$stage/flipjump-jetbrains-textmate/"
 ( cd "$stage" && zip -r -X - flipjump-jetbrains-textmate ) > ../docs/source/_static/flipjump-jetbrains-textmate.zip
 ```
 
@@ -58,5 +58,5 @@ Then commit the updated artifacts.
 
 ## Publish
 
-- **VS Code Marketplace:** `cd vscode && npx --yes @vscode/vsce publish` (needs an Azure DevOps PAT for the `tomhea` publisher).
+- **VS Code Marketplace:** `cd vscode && npx --yes @vscode/vsce publish` (needs an Azure DevOps PAT for the `flipjump` publisher).
 - **Open VSX (optional):** `npx --yes ovsx publish`.
