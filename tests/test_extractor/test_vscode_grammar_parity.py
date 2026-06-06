@@ -1,7 +1,7 @@
 """Parity guard: the shared TextMate grammar must stay in lock-step with the
 Pygments lexer.
 
-The VS Code extension and the JetBrains bundle both consume
+The VS Code extension consumes
 ``editors/grammars/flipjump.tmLanguage.json``. That grammar is a hand-written
 port of ``docs/_ext/fj_stl_extract/pygments_lexer.py`` (which mirrors the IDE's
 Monaco tokenizer). These tests fail loudly if the lexer's word-lists change
@@ -96,17 +96,11 @@ def test_bit_is_not_a_type():
 
 
 def test_synced_copies_are_byte_identical_to_canonical():
-    """`npm run sync` copies the canonical grammar/theme into the per-editor
-    packages; the committed copies must match byte-for-byte."""
+    """`npm run sync` copies the canonical grammar into the VS Code extension;
+    the committed copy must match byte-for-byte."""
     canonical_grammar = _CANONICAL_GRAMMAR.read_bytes()
-    for copy in (
-        _EDITORS / "vscode" / "syntaxes" / "flipjump.tmLanguage.json",
-        _EDITORS / "jetbrains" / "flipjump.tmLanguage.json",
-    ):
-        assert copy.read_bytes() == canonical_grammar, f"{copy} drifted; run `npm run sync`"
-
-    canonical_theme = _CANONICAL_THEME.read_bytes()
-    assert (_EDITORS / "jetbrains" / "flipjump-dark.tmTheme").read_bytes() == canonical_theme
+    copy = _EDITORS / "vscode" / "syntaxes" / "flipjump.tmLanguage.json"
+    assert copy.read_bytes() == canonical_grammar, f"{copy} drifted; run `npm run sync`"
 
 
 # ---- colour parity with the fj-dark Pygments style ----
@@ -200,8 +194,8 @@ def test_colors_mjs_matches_the_fj_dark_style():
     assert mjs_hexes == _style_foreground_hexes()
 
 
-def test_jetbrains_theme_covers_the_fj_dark_palette():
-    """Every fj-dark token colour must appear in the JetBrains .tmTheme (which
+def test_canonical_theme_covers_the_fj_dark_palette():
+    """Every fj-dark token colour must appear in the canonical .tmTheme (which
     additionally carries editor-chrome colours, hence subset not equality)."""
     theme_hexes = _hexes(_CANONICAL_THEME.read_text(encoding="utf-8"))
     assert _style_foreground_hexes() <= theme_hexes
