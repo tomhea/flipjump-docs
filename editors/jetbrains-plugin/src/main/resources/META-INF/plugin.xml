@@ -25,5 +25,9 @@
             language="FlipJump"
             implementationClass="app.tomhe.flipjump.FlipJumpSyntaxHighlighterFactory"/>
         <colorSettingsPage implementation="app.tomhe.flipjump.FlipJumpColorSettingsPage"/>
+        <!-- Default fj-dark colours for the FLIPJUMP_* keys, so they apply out of
+             the box without hard-coded TextAttributes (the deprecated route). -->
+        <additionalTextAttributes scheme="Default" file="colorSchemes/FlipJumpDefault.xml"/>
+        <additionalTextAttributes scheme="Darcula" file="colorSchemes/FlipJumpDarcula.xml"/>
     </extensions>
 </idea-plugin>

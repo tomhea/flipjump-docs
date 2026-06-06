@@ -2,41 +2,37 @@ package app.tomhe.flipjump;
 
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
-import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Color;
-import java.awt.Font;
-
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 /**
- * Maps each lexer token to its exact fj-dark colour (copied from the docs-site
- * Pygments style). The colours are embedded as the keys' default attributes, so
- * they apply out of the box in any colour scheme, scoped to FlipJump only.
+ * Maps each lexer token to its exact fj-dark colour. The default colours live in
+ * the bundled colour schemes (resources/colorSchemes/FlipJump*.xml, registered
+ * via {@code additionalTextAttributes} in plugin.xml), so the keys are created
+ * by external name only — no deprecated hard-coded {@code TextAttributes}.
  */
 public final class FlipJumpSyntaxHighlighter extends SyntaxHighlighterBase {
 
-    private static TextAttributesKey key(String name, String hex, int fontType) {
-        TextAttributes attrs = new TextAttributes(Color.decode(hex), null, null, null, fontType);
-        return createTextAttributesKey("FLIPJUMP_" + name, attrs);
+    private static TextAttributesKey key(String name) {
+        return createTextAttributesKey("FLIPJUMP_" + name);
     }
 
-    public static final TextAttributesKey KEYWORD    = key("KEYWORD",    "#569cd6", Font.BOLD);
-    public static final TextAttributesKey MACRO_DEF  = key("MACRO_DEF",  "#56c8c8", Font.PLAIN);
-    public static final TextAttributesKey NAMESPACE  = key("NAMESPACE",  "#56c8c8", Font.PLAIN);
-    public static final TextAttributesKey MACRO_CALL = key("MACRO_CALL", "#e8c47a", Font.PLAIN);
-    public static final TextAttributesKey DIRECTIVE  = key("DIRECTIVE",  "#e07b39", Font.PLAIN);
-    public static final TextAttributesKey TYPE       = key("TYPE",       "#4ec9b0", Font.PLAIN);
-    public static final TextAttributesKey LABEL      = key("LABEL",      "#4ec9b0", Font.PLAIN);
-    public static final TextAttributesKey CONSTANT   = key("CONSTANT",   "#c792ea", Font.PLAIN);
-    public static final TextAttributesKey IDENTIFIER = key("IDENTIFIER", "#9cdcfe", Font.PLAIN);
-    public static final TextAttributesKey NUMBER     = key("NUMBER",     "#b5cea8", Font.PLAIN);
-    public static final TextAttributesKey STRING     = key("STRING",     "#ce9178", Font.PLAIN);
-    public static final TextAttributesKey COMMENT    = key("COMMENT",    "#6a9955", Font.ITALIC);
-    public static final TextAttributesKey OPERATOR   = key("OPERATOR",   "#d4d4d4", Font.PLAIN);
+    public static final TextAttributesKey KEYWORD    = key("KEYWORD");
+    public static final TextAttributesKey MACRO_DEF  = key("MACRO_DEF");
+    public static final TextAttributesKey NAMESPACE  = key("NAMESPACE");
+    public static final TextAttributesKey MACRO_CALL = key("MACRO_CALL");
+    public static final TextAttributesKey DIRECTIVE  = key("DIRECTIVE");
+    public static final TextAttributesKey TYPE       = key("TYPE");
+    public static final TextAttributesKey LABEL      = key("LABEL");
+    public static final TextAttributesKey CONSTANT   = key("CONSTANT");
+    public static final TextAttributesKey IDENTIFIER = key("IDENTIFIER");
+    public static final TextAttributesKey NUMBER     = key("NUMBER");
+    public static final TextAttributesKey STRING     = key("STRING");
+    public static final TextAttributesKey COMMENT    = key("COMMENT");
+    public static final TextAttributesKey OPERATOR   = key("OPERATOR");
 
     private static final TextAttributesKey[] EMPTY = new TextAttributesKey[0];
 

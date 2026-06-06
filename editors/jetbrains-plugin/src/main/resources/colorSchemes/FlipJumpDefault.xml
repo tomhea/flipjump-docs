@@ -1,0 +1,71 @@
+<scheme name="Default" version="142" parent_scheme="Default">
+  <attributes>
+    <option name="FLIPJUMP_KEYWORD">
+      <value>
+        <option name="FOREGROUND" value="569cd6" />
+        <option name="FONT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_MACRO_DEF">
+      <value>
+        <option name="FOREGROUND" value="56c8c8" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_NAMESPACE">
+      <value>
+        <option name="FOREGROUND" value="56c8c8" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_MACRO_CALL">
+      <value>
+        <option name="FOREGROUND" value="e8c47a" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_DIRECTIVE">
+      <value>
+        <option name="FOREGROUND" value="e07b39" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_TYPE">
+      <value>
+        <option name="FOREGROUND" value="4ec9b0" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_LABEL">
+      <value>
+        <option name="FOREGROUND" value="4ec9b0" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_CONSTANT">
+      <value>
+        <option name="FOREGROUND" value="c792ea" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_IDENTIFIER">
+      <value>
+        <option name="FOREGROUND" value="9cdcfe" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_NUMBER">
+      <value>
+        <option name="FOREGROUND" value="b5cea8" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_STRING">
+      <value>
+        <option name="FOREGROUND" value="ce9178" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="6a9955" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="FLIPJUMP_OPERATOR">
+      <value>
+        <option name="FOREGROUND" value="d4d4d4" />
+      </value>
+    </option>
+  </attributes>
+</scheme>
