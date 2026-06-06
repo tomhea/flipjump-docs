@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>app.tomhe.flipjump</id>
     <name>FlipJump</name>
-    <vendor url="https://fjdocs.tomhe.app">tomhea</vendor>
+    <vendor url="https://fjdocs.tomhe.app">tomhe</vendor>
 
     <description><![CDATA[
         Syntax highlighting for the <b>FlipJump</b> assembly language (<code>.fj</code>) —

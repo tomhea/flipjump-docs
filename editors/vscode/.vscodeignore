@@ -5,3 +5,6 @@ node_modules/**
 test/**
 preview.*
 **/.DS_Store
+# Stray local tooling artifacts (must never ship in the extension)
+*.db
+ruvector.db

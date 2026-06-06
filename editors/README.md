@@ -58,5 +58,5 @@ Then commit the updated artifacts.
 
 ## Publish
 
-- **VS Code Marketplace:** `cd vscode && npx --yes @vscode/vsce publish` (needs an Azure DevOps PAT for the `tomhea` publisher).
+- **VS Code Marketplace:** `cd vscode && npx --yes @vscode/vsce publish` (needs an Azure DevOps PAT for the `tomhe` publisher).
 - **Open VSX (optional):** `npx --yes ovsx publish`.
