@@ -1,5 +1,10 @@
 # flipjump-docs
 
+[![Deploy docs](https://github.com/tomhea/flipjump-docs/actions/workflows/deploy.yml/badge.svg)](https://github.com/tomhea/flipjump-docs/actions/workflows/deploy.yml)
+[![PR build](https://github.com/tomhea/flipjump-docs/actions/workflows/pr-build.yml/badge.svg)](https://github.com/tomhea/flipjump-docs/actions/workflows/pr-build.yml)
+[![License: BSD-2-Clause](https://img.shields.io/badge/License-BSD--2--Clause-blue.svg)](LICENSE)
+[![Docs site](https://img.shields.io/website?url=https%3A%2F%2Ffjdocs.tomhe.app&label=fjdocs.tomhe.app)](https://fjdocs.tomhe.app)
+
 Source for [fjdocs.tomhe.app](https://fjdocs.tomhe.app) — the documentation site for the [FlipJump](https://github.com/tomhea/flip-jump) esoteric language.
 
 The site is built with [Sphinx](https://www.sphinx-doc.org/) + [MyST-Parser](https://myst-parser.readthedocs.io/) + the [Furo](https://pradyunsg.me/furo/) theme. Per-file and per-macro reference pages are auto-generated from the [`flipjump/stl/`](https://github.com/tomhea/flip-jump/tree/main/flipjump/stl) source by a Sphinx extension at `docs/_ext/fj_stl_extract.py`.
