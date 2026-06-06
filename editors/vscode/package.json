@@ -3,7 +3,7 @@
   "displayName": "FlipJump",
   "description": "Syntax highlighting for the FlipJump assembly language (.fj), matching the FlipJump IDE and docs.",
   "version": "0.1.0",
-  "publisher": "tomhe",
+  "publisher": "flipjump",
   "license": "BSD-2-Clause",
   "icon": "icon.png",
   "engines": {
