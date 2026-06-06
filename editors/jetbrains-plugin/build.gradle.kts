@@ -3,11 +3,11 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java")
-    id("org.jetbrains.intellij.platform") version "2.1.0"
+    id("org.jetbrains.intellij.platform") version "2.16.0"
     // Parses CHANGELOG.md (Keep a Changelog format) so the plugin's
     // "What's new" is generated from the same file VS Code renders as its
     // Changelog tab — single source of truth, no duplicated HTML.
-    id("org.jetbrains.changelog") version "2.2.1"
+    id("org.jetbrains.changelog") version "2.5.0"
 }
 
 group = "app.tomhe.flipjump"
@@ -28,9 +28,6 @@ dependencies {
         // (PyCharm, CLion, WebStorm, ...).
         intellijIdeaCommunity("2024.2")
         testFramework(TestFrameworkType.Platform)
-        // Required by the 2.x instrumentCode task (bytecode @NotNull/form
-        // instrumentation); not pulled in transitively at this plugin version.
-        instrumentationTools()
     }
     testImplementation("junit:junit:4.13.2")
 }
