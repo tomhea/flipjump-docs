@@ -2,7 +2,7 @@
 # Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates
 version: 2
 updates:
-  # GitHub Actions used by the workflows (kept SHA-pinned; Dependabot bumps the SHA).
+  # GitHub Actions used by the workflows (version/SHA-pinned; Dependabot bumps them).
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

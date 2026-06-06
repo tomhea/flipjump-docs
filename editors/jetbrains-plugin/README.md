@@ -17,7 +17,7 @@ identical golden cases in `src/test/java/.../FlipJumpLexerTest.java`.
 
 > Settings → **Plugins** → ⚙ → **Install Plugin from Disk…**
 
-1. Download `flipjump-jetbrains-plugin.zip` from the
+1. Download `flipjump-jetbrains.zip` from the
    [docs site](https://fjdocs.tomhe.app/tools/editor-highlighting.html).
 2. *Settings → Plugins → ⚙ → Install Plugin from Disk…* → select the zip.
 3. Restart the IDE when prompted. Open any `.fj` file.
