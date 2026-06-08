@@ -16,14 +16,6 @@
 ⬇ Download JetBrains plugin (`.zip`)
 ```
 
-```{button-link} ../_static/flipjump-jetbrains-textmate.zip
-:color: secondary
-:expand:
-:tooltip: Download the JetBrains TextMate bundle (approximate colours)
-
-⬇ Download JetBrains TextMate bundle (`.zip`)
-```
-
 ## What it is
 
 Syntax highlighting for `.fj` files in [VS Code](https://code.visualstudio.com)
@@ -38,9 +30,8 @@ macro definitions in cyan, labels in teal, constants in purple, directives in
 orange, plus strings, numbers, and comments.
 
 For exact colours, **VS Code** uses a TextMate grammar + scoped colour rules, and
-**JetBrains** uses a native plugin with its own lexer (its TextMate engine can't
-reproduce the per-token colours — see below). A lighter, *approximate* JetBrains
-TextMate bundle is also available.
+**JetBrains** uses a native plugin with its own lexer (its built-in TextMate
+engine can't reproduce the per-token colours).
 
 ## VS Code
 
@@ -73,15 +64,12 @@ Want to tweak them? Add this to your `settings.json` and edit the hexes:
 
 ## JetBrains IDEs
 
-Two options, depending on whether you want exact colours.
+A native IntelliJ Platform plugin with its own lexer, so it reproduces the VS
+Code colours **exactly**, including macro-call (gold) vs macro-definition (cyan),
+labels, constants, and the rest — things JetBrains' built-in TextMate engine
+[can't do](https://youtrack.jetbrains.com/issue/IJPL-34298).
 
-### Native plugin — exact `fj-dark` (recommended)
-
-A real IntelliJ Platform plugin with its own lexer, so it reproduces the VS Code
-colours **exactly**, including macro-call (gold) vs macro-definition (cyan),
-labels, constants, and the rest — things the TextMate route can't do in JetBrains.
-
-It's distributed as a normal plugin (this one *does* use the Plugins page):
+It's distributed as a normal plugin (it uses the Plugins page):
 
 1. Download the `.zip` above. (Or build it yourself:
    `cd editors/jetbrains-plugin && ./gradlew buildPlugin` →
@@ -92,28 +80,13 @@ It's distributed as a normal plugin (this one *does* use the Plugins page):
 
 A JetBrains Marketplace listing is planned so this becomes a one-click install.
 
-### TextMate bundle — lightweight, approximate
-
-The `.zip` above is a TextMate bundle (**not** a plugin — don't use *Install
-Plugin from Disk* for it). It needs no build:
-
-1. Unzip it → a `flipjump-jetbrains-textmate/` folder.
-2. *Settings → Editor → **TextMate Bundles** → `+`* and select that folder.
-3. Open any `.fj` file.
-
-JetBrains colours TextMate tokens from your active IDE scheme via a fixed,
-built-in scope map and [can't load custom TextMate
-themes](https://youtrack.jetbrains.com/issue/IJPL-34298), so this route is
-approximate — macro calls and definitions share a colour and labels stay plain.
-Use the native plugin above for exact parity.
-
 ## Source
 
 Everything lives in the docs repo at
 [`tomhea/flipjump-docs`](https://github.com/tomhea/flipjump-docs) under `editors/`
-— the VS Code extension in `editors/vscode`, the JetBrains native plugin in
-`editors/jetbrains-plugin`, the JetBrains TextMate bundle in `editors/jetbrains`,
-and the shared grammar in `editors/grammars/flipjump.tmLanguage.json`. Bug reports
+— the VS Code extension in `editors/vscode`, the native JetBrains plugin in
+`editors/jetbrains-plugin`, and the shared grammar in
+`editors/grammars/flipjump.tmLanguage.json`. Bug reports
 and improvements welcome there.
 
 ## Related

@@ -1,0 +1,43 @@
+# Dependabot keeps dependencies and pinned GitHub Actions up to date.
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates
+version: 2
+updates:
+  # GitHub Actions used by the workflows (version/SHA-pinned; Dependabot bumps them).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+
+  # Python deps for the Sphinx docs build.
+  - package-ecosystem: "pip"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps(docs)"
+
+  # Root pyproject.toml (the dev extras: pytest, pyyaml).
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+
+  # Node tooling for the shared grammar + VS Code extension.
+  - package-ecosystem: "npm"
+    directory: "/editors"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps(editors)"
+
+  # Gradle deps + plugins for the native JetBrains plugin.
+  - package-ecosystem: "gradle"
+    directory: "/editors/jetbrains-plugin"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps(jetbrains-plugin)"
