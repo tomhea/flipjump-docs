@@ -1,0 +1,13 @@
+# The VS Code extension is repackaged into a committed binary
+# (docs/source/_static/flipjump-vscode.vsix), and CI diffs the vsix's embedded
+# files against these sources. vsce stores files verbatim, so if they are
+# checked out with CRLF (e.g. on Windows with core.autocrlf=true) the repackaged
+# vsix embeds CRLF while CI checks out the sources as LF -- every line then
+# registers as changed. Pin the editor sources to LF so the vsix stays portable.
+editors/grammars/**             text eol=lf
+editors/*.mjs                   text eol=lf
+editors/*.tmTheme               text eol=lf
+editors/vscode/*.json           text eol=lf
+editors/vscode/syntaxes/*.json  text eol=lf
+editors/vscode/*.md             text eol=lf
+editors/vscode/LICENSE          text eol=lf
