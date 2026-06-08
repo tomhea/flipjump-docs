@@ -1,19 +1,19 @@
 # Editor syntax highlighting — VS Code & JetBrains
 
-```{button-link} ../_static/flipjump-vscode.vsix
+```{button-link} https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump
 :color: primary
 :expand:
-:tooltip: Download the VS Code extension
+:tooltip: Open the FlipJump extension on the VS Code Marketplace
 
-⬇ Download VS Code extension (`.vsix`)
+🧩 Get the VS Code extension
 ```
 
-```{button-link} ../_static/flipjump-jetbrains.zip
+```{button-link} https://plugins.jetbrains.com/plugin/32134-flipjump
 :color: primary
 :expand:
-:tooltip: Download the native JetBrains plugin (exact fj-dark colours)
+:tooltip: Open the FlipJump plugin on the JetBrains Marketplace
 
-⬇ Download JetBrains plugin (`.zip`)
+🧩 Get the JetBrains plugin
 ```
 
 ## What it is
@@ -35,16 +35,15 @@ engine can't reproduce the per-token colours).
 
 ## VS Code
 
-**Install**
+**Install** from the
+[VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump):
 
-- **Marketplace:** search **FlipJump** in the Extensions view, or
-- **From VSIX:** download the `.vsix` above, then
+- **In the editor:** open the Extensions view, search **FlipJump**, click *Install*.
+- **Command line:**
 
   ```bash
-  code --install-extension flipjump-vscode.vsix
+  code --install-extension flipjump.flipjump
   ```
-
-  or *Extensions → ··· → Install from VSIX…*
 
 **Colours.** The extension applies the exact `fj-dark` colours to FlipJump tokens
 **only** — every scope ends in `.flipjump`, so your own editor theme is untouched
@@ -69,16 +68,16 @@ Code colours **exactly**, including macro-call (gold) vs macro-definition (cyan)
 labels, constants, and the rest — things JetBrains' built-in TextMate engine
 [can't do](https://youtrack.jetbrains.com/issue/IJPL-34298).
 
-It's distributed as a normal plugin (it uses the Plugins page):
+**Install** from the
+[JetBrains Marketplace](https://plugins.jetbrains.com/plugin/32134-flipjump):
 
-1. Download the `.zip` above. (Or build it yourself:
-   `cd editors/jetbrains-plugin && ./gradlew buildPlugin` →
-   `build/distributions/flipjump-jetbrains-*.zip`; the first build downloads the
-   IntelliJ Platform.)
-2. *Settings → **Plugins** → ⚙ → Install Plugin from Disk…* → select the zip → restart.
-3. Open any `.fj` file. Tweak colours under *Settings → Editor → Color Scheme → FlipJump*.
+1. *Settings → **Plugins** → Marketplace*, search **FlipJump**, click *Install* → restart.
+2. Open any `.fj` file. Tweak colours under *Settings → Editor → Color Scheme → FlipJump*.
 
-A JetBrains Marketplace listing is planned so this becomes a one-click install.
+Prefer to build it yourself? `cd editors/jetbrains-plugin && ./gradlew buildPlugin`
+produces `build/distributions/flipjump-jetbrains-*.zip`, which you can load via
+*Settings → **Plugins** → ⚙ → Install Plugin from Disk…* (the first build downloads
+the IntelliJ Platform).
 
 ## Source
 

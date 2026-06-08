@@ -1,5 +1,9 @@
 # FlipJump for VS Code
 
+[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/flipjump.flipjump?label=Marketplace&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/flipjump.flipjump?label=installs)](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/flipjump.flipjump?label=rating)](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump&ssr=false#review-details)
+
 Syntax highlighting for the [FlipJump](https://github.com/tomhea/flip-jump)
 assembly language — the one-instruction esoteric language. Opens `.fj` files
 with the exact token colours used by the [FlipJump IDE](https://fj.tomhe.app)
@@ -29,15 +33,14 @@ your `settings.json` with `textMateRules` targeting the `*.flipjump` scopes.
 
 ## Install
 
-- **Marketplace:** search for **FlipJump** in the Extensions view.
-- **From VSIX:** download `flipjump-vscode.vsix` from the
-  [docs site](https://fjdocs.tomhe.app/tools/editor-highlighting.html), then run
+From the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump):
+
+- **In the editor:** search for **FlipJump** in the Extensions view, click *Install*.
+- **Command line:**
 
   ```
-  code --install-extension flipjump-vscode.vsix
+  code --install-extension flipjump.flipjump
   ```
-
-  or *Extensions → ··· → Install from VSIX…*
 
 ## Source & issues
 

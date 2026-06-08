@@ -63,6 +63,15 @@ The browser IDE, c2fj (C compiler), bf2fj (Brainfuck compiler).
 - The [upstream `flip-jump` repository](https://github.com/tomhea/flip-jump) for the language implementation, examples, and tests.
 - The [esolangs.org wiki entry](https://esolangs.org/wiki/FlipJump) for background and design commentary.
 
+## IDE plugins
+
+Get `.fj` syntax highlighting in your editor — the same `fj-dark` colours as the [browser IDE](tools/ide.md) and these docs:
+
+- **VS Code** — [FlipJump on the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump).
+- **JetBrains IDEs** (IntelliJ IDEA, PyCharm, CLion, …) — [FlipJump on the JetBrains Marketplace](https://plugins.jetbrains.com/plugin/32134-flipjump).
+
+See [Editor syntax highlighting](tools/editor-highlighting.md) for install details.
+
 ```{toctree}
 :maxdepth: 2
 :hidden:

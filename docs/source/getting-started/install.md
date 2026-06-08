@@ -35,8 +35,12 @@ The [FlipJump IDE at fj.tomhe.app](https://fj.tomhe.app) runs the same assembler
 
 ## Editor support
 
-- **VS Code** — the [Monaco-based syntax highlighting](https://github.com/tomhea/fj.tomhe.app/blob/main/components/CodeEditor.tsx) that powers the IDE could be wrapped into a VS Code extension; one isn't published yet.
-- **Vim / Emacs / other** — `.fj` files don't have an established syntax mode upstream. The [Lexical Structure](../language/lexical.md) reference is short enough to bootstrap one quickly.
+`.fj` syntax highlighting is available as published plugins, both applying the same `fj-dark` colours as the IDE and these docs:
+
+- **VS Code** — [FlipJump on the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump).
+- **JetBrains IDEs** (IntelliJ IDEA, PyCharm, CLion, …) — [FlipJump on the JetBrains Marketplace](https://plugins.jetbrains.com/plugin/32134-flipjump).
+
+See [Editor syntax highlighting](../tools/editor-highlighting.md) for details. **Vim / Emacs / other** editors don't have an established `.fj` mode yet — the [Lexical Structure](../language/lexical.md) reference is short enough to bootstrap one quickly.
 
 ## What's next
 
