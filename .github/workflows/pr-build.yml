@@ -81,7 +81,7 @@ jobs:
         run: pytest tests/ -v
 
       - name: Upload HTML preview artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: html-preview
           path: docs/_build/html/
