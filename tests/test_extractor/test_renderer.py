@@ -331,13 +331,16 @@ ns stl {
     page = (tmp_path / "runlib" / "evil--0.md").read_text(encoding="utf-8")
 
     # Isolate the JSON-LD payload (the {raw} html passthrough that lands
-    # verbatim in the served HTML) and assert it contains no premature
-    # `</script>` — the breakout — but does carry the escaped payload.
+    # verbatim in the served HTML). Slice to the template's own-line
+    # closing tag (`\n</script>`), NOT the first `</script>`: on vulnerable
+    # code the injected `</script>` is inline inside the JSON string, so
+    # slicing on the first one would hide the breakout. Anchoring on the
+    # real closing tag captures the full block either way.
     open_tag = '<script type="application/ld+json">'
     body = page[page.index(open_tag) + len(open_tag):]
-    json_ld = body[: body.index("</script>")]
+    json_ld = body[: body.index("\n</script>")]
     # No HTML-significant character may survive literally inside the
-    # JSON-LD — any `<`/`>` here is a potential breakout from the block.
+    # JSON-LD — any `<`/`>` here is a breakout from the block.
     assert "<" not in json_ld
     assert ">" not in json_ld
     # The payload's angle brackets are present, but only escaped.

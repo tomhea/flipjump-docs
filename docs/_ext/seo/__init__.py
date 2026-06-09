@@ -229,6 +229,26 @@ def _strip_tags(s: str) -> str:
     return _TAG_RE.sub("", s).strip()
 
 
+def _json_ld(data: dict) -> str:
+    """Serialise `data` for embedding inside an inline
+    `<script type="application/ld+json">` block.
+
+    `json.dumps` escapes for JSON but NOT for HTML, and the HTML parser
+    terminates a `<script>` element at the first literal `</script>`
+    substring regardless of JSON context. The JSON-LD here is built from
+    config/static text today, but `</script>`-safe escaping keeps the
+    blocks robust if any future field carries less-trusted input (the
+    `fj_stl_extract` renderer applies the same escaping for the same
+    reason). `<`, `>`, and `&` are escaped to their `\\uXXXX` forms, which
+    are valid JSON and decode back to the original glyphs."""
+    return (
+        json.dumps(data, separators=(",", ":"))
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+    )
+
+
 def _page_title(pagename: str, context: dict, app: Any) -> str:
     """The full page title used for og:title / twitter:title.
 
@@ -347,12 +367,12 @@ def _build_meta_block(
             software_jsonld["softwareVersion"] = version
         parts.append(
             '<script type="application/ld+json">'
-            + json.dumps(website_jsonld, separators=(",", ":"))
+            + _json_ld(website_jsonld)
             + "</script>"
         )
         parts.append(
             '<script type="application/ld+json">'
-            + json.dumps(software_jsonld, separators=(",", ":"))
+            + _json_ld(software_jsonld)
             + "</script>"
         )
 

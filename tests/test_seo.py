@@ -44,6 +44,24 @@ def built_site(tmp_path_factory):
     return out_dir
 
 
+# ---------- JSON-LD <script> safety (no build needed) ----------
+
+def test_seo_json_ld_escapes_html_for_script_context():
+    """The SEO module emits JSON-LD inside inline `<script>` blocks. The
+    serialiser must `\\uXXXX`-escape HTML-significant characters so a
+    `</script>` can never break out of the block, mirroring the
+    fj_stl_extract renderer's `</script>`-safe serialisation."""
+    import json
+
+    from seo import _json_ld
+
+    out = _json_ld({"description": "</script><svg onload=alert(1)>&"})
+    assert "<" not in out
+    assert ">" not in out
+    assert "&" not in out
+    assert json.loads(out)["description"] == "</script><svg onload=alert(1)>&"
+
+
 def _read(html_dir: Path, page: str) -> str:
     p = html_dir / page
     assert p.is_file(), f"{p} not built"
