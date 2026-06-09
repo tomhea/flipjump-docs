@@ -15,7 +15,12 @@ from fj_stl_extract.parser import parse
 from fj_stl_extract.dep_graph import build_dep_graph
 from fj_stl_extract.doc_attach import attach_docs
 from fj_stl_extract.pipeline import ExtractedFile, StlIndex, extract_stl
-from fj_stl_extract.renderer import file_doc_path, macro_doc_path, render_stl
+from fj_stl_extract.renderer import (
+    _json_ld,
+    file_doc_path,
+    macro_doc_path,
+    render_stl,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -283,6 +288,60 @@ ns stl {
     render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
     page = (tmp_path / "runlib" / "add--0.md").read_text(encoding="utf-8")
     assert "language/complexity.md" in page
+
+
+# ---------- JSON-LD <script> safety ----------
+
+def test_json_ld_escapes_html_for_script_context():
+    """Security unit test for the `</script>`-safe JSON-LD serialiser.
+
+    Macro descriptions come from doc comments in the (untrusted) upstream
+    flip-jump submodule and are embedded verbatim in an inline
+    `<script type="application/ld+json">` block. `json.dumps` escapes for
+    JSON but NOT for HTML, and the HTML parser terminates a `<script>`
+    element at the first literal `</script>` regardless of JSON context. A
+    description like `</script><img onerror=...>` would otherwise break out
+    of the block and inject live markup (stored XSS) on every visitor.
+
+    `_json_ld` must `\\uXXXX`-escape `<`, `>`, and `&` so the output stays
+    valid JSON while remaining inert inside a `<script>` element."""
+    out = _json_ld({"description": "</script><img src=x onerror=alert(1)>&"})
+
+    # No HTML-significant character may survive literally.
+    assert "<" not in out
+    assert ">" not in out
+    assert "&" not in out
+    # The payload is preserved in escaped form, and the result is still
+    # valid JSON that round-trips to the original value.
+    assert "\\u003c/script\\u003e\\u003cimg" in out
+    import json as _json
+    assert _json.loads(out)["description"] == "</script><img src=x onerror=alert(1)>&"
+
+
+def test_macro_page_jsonld_block_has_no_script_breakout(tmp_path):
+    """End-to-end: a malicious first-line description must not break out
+    of the rendered macro page's JSON-LD `<script>` block."""
+    src = """\
+ns stl {
+    // </script><img src=x onerror=alert(document.cookie)>
+    def evil {}
+}
+"""
+    render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
+    page = (tmp_path / "runlib" / "evil--0.md").read_text(encoding="utf-8")
+
+    # Isolate the JSON-LD payload (the {raw} html passthrough that lands
+    # verbatim in the served HTML) and assert it contains no premature
+    # `</script>` — the breakout — but does carry the escaped payload.
+    open_tag = '<script type="application/ld+json">'
+    body = page[page.index(open_tag) + len(open_tag):]
+    json_ld = body[: body.index("</script>")]
+    # No HTML-significant character may survive literally inside the
+    # JSON-LD — any `<`/`>` here is a potential breakout from the block.
+    assert "<" not in json_ld
+    assert ">" not in json_ld
+    # The payload's angle brackets are present, but only escaped.
+    assert "\\u003c" in json_ld and "\\u003e" in json_ld
 
 
 # ---------- end-to-end against real STL ----------

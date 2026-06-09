@@ -49,6 +49,29 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 _MANIFEST_NAME = ".render_manifest.json"
 
 
+def _json_ld(data: dict) -> str:
+    """Serialise `data` for embedding inside an inline
+    `<script type="application/ld+json">` block.
+
+    Macro descriptions come from doc comments in the (untrusted) upstream
+    `flip-jump` submodule, so they can contain arbitrary text — including a
+    literal `</script>`. `json.dumps` escapes for JSON but NOT for HTML, and
+    the HTML parser terminates a `<script>` element at the first literal
+    `</script>` substring regardless of JS/JSON context. Without escaping,
+    a description like `</script><img src=x onerror=...>` would break out of
+    the JSON-LD block and inject live markup (stored XSS) on every visitor.
+
+    Escaping `<`, `>`, and `&` to their `\\uXXXX` forms keeps the output valid
+    JSON while making it inert inside a `<script>` element. This mirrors the
+    standard `</script>`-safe JSON-LD serialisation."""
+    return (
+        json.dumps(data)
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+    )
+
+
 # ---------- path helpers ----------
 
 def file_doc_path(rel_path: str) -> str:
@@ -361,7 +384,7 @@ def _macro_context(*, macro: MacroNode, file: ExtractedFile, index: StlIndex,
         # JSON-LD structured data (Polish #D3) — TechArticle markup so
         # search engines understand this is API docs for a specific
         # macro with a fixed identifier.
-        "json_ld": json.dumps({
+        "json_ld": _json_ld({
             "@context": "https://schema.org",
             "@type": "TechArticle",
             "headline": f"{macro.fq_name} (arity {macro.arity})",
