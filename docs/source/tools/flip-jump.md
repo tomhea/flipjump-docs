@@ -18,7 +18,7 @@ The canonical home of the FlipJump language: the assembler, the interpreter, the
 | [`flipjump/assembler/`](https://github.com/tomhea/flip-jump/tree/main/flipjump/assembler) | The `fj` assembler — turns `.fj` source into `.fjm` binaries |
 | [`flipjump/interpreter/`](https://github.com/tomhea/flip-jump/tree/main/flipjump/interpreter) | The runtime that executes `.fjm` binaries |
 | [`flipjump/stl/`](https://github.com/tomhea/flip-jump/tree/main/flipjump/stl) | The standard library — source for every macro on this site |
-| [`programs/`](https://github.com/tomhea/flip-jump/tree/main/programs) | Real example programs: hello world, prime sieve, calculator, quine |
+| [`programs/`](https://github.com/tomhea/flip-jump/tree/main/programs) | Real example programs: hello world, prime sieve, calculator, quine — plus the [demonstration catalog](https://github.com/tomhea/flip-jump/tree/main/programs/catalog) of 1029 small tested programs |
 | [`tests/`](https://github.com/tomhea/flip-jump/tree/main/tests) | The test suite that proves a release works |
 
 ## What to do there
