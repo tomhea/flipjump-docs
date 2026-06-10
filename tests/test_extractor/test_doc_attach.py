@@ -557,8 +557,8 @@ ns bit {
 }
 """
     info = _doc(src, "shl")
-    # Original prose still there.
-    assert "x[:n] <<= times" in info.description
+    # Original prose still there; < is HTML-escaped at the extraction boundary.
+    assert "x[:n] &lt;&lt;= times" in info.description
     # Plus the appended @Assumes.
     assert "@Assumes: times <= n" in info.description
 
@@ -722,3 +722,117 @@ def test_def_with_no_doc_yields_empty_docinfo():
     assert info.description == ""
     assert info.time_complexity is None
     assert info.raw_doc_lines == []
+
+
+# ---------- HTML-injection safety (XSS) ----------
+# These tests verify that untrusted text from upstream .fj doc comments
+# cannot inject live HTML tags into the generated Markdown pages.
+# MyST-Parser passes raw HTML through to the rendered output by default;
+# escaping < > & at the extraction boundary is the defence.
+
+def test_description_angle_brackets_escaped():
+    """Raw <tag> in a description line must be escaped to &lt;tag&gt;."""
+    src = """\
+ns stl {
+    // This macro handles <img src=x onerror=alert(1)> edge cases
+    def op {}
+}
+"""
+    info = _doc(src, "op")
+    assert "<img" not in info.description
+    assert "&lt;img" in info.description
+
+
+def test_description_script_tag_escaped():
+    """A <script> breakout in a doc comment must not survive to Markdown.
+
+    After escaping, _backtick_inline_code may further wrap the escaped
+    fragments into inline-code spans (e.g. `script&gt;`), but the live
+    HTML characters < > must not appear literally.
+    """
+    src = """\
+ns stl {
+    // <script>alert(document.cookie)</script>
+    def evil {}
+}
+"""
+    info = _doc(src, "evil")
+    # The critical security property: no literal < > that would form a
+    # live HTML tag when MyST renders the Markdown output. Note that
+    # _backtick_inline_code may split the escaped &gt; entity across the
+    # backtick boundary (e.g. `script&gt`; where ; follows the closing
+    # backtick), so we check for the bare &lt; / &gt prefix rather than
+    # the full 4-char entity.
+    assert "<" not in info.description
+    assert ">" not in info.description
+    assert "&lt;" in info.description
+    assert "&gt" in info.description
+
+
+def test_description_iframe_with_external_url_escaped():
+    """The :// skip-path in _backtick_inline_code previously allowed a live
+    <iframe src=https://...> through. Escaping < > at source boundary blocks it."""
+    src = """\
+ns stl {
+    // <iframe src=https://evil.example/x></iframe>
+    def op {}
+}
+"""
+    info = _doc(src, "op")
+    assert "<iframe" not in info.description
+    assert "&lt;iframe" in info.description
+
+
+def test_description_anchor_with_external_href_escaped():
+    """<a href=https://evil.example> must not render as a live clickable link
+    injected by a doc comment."""
+    src = """\
+ns stl {
+    // Click <a href=https://evil.example>here</a> for more
+    def op {}
+}
+"""
+    info = _doc(src, "op")
+    assert "<a href" not in info.description
+    assert "&lt;a" in info.description
+
+
+def test_description_ampersand_escaped():
+    """& is escaped to &amp; so it cannot start an HTML entity sequence."""
+    src = """\
+ns stl {
+    // src &amp; dst are the operands
+    def op {}
+}
+"""
+    info = _doc(src, "op")
+    # Original & must be represented as &amp; in the Markdown output.
+    assert "src &amp;amp; dst" in info.description or "src &amp;" in info.description
+
+
+def test_requires_tag_angle_brackets_escaped():
+    """@requires values also come from upstream source and must be escaped."""
+    src = """\
+ns stl {
+    // @requires <some_macro> to be called first
+    def op {}
+}
+"""
+    info = _doc(src, "op")
+    for req in info.requires:
+        assert "<" not in req
+        assert ">" not in req
+
+
+def test_output_param_description_escaped():
+    """@output-param descriptions also come from upstream source and must be escaped."""
+    src = """\
+ns stl {
+    // @output-param result: value <or> zero on underflow
+    def op {}
+}
+"""
+    info = _doc(src, "op")
+    for desc in info.output_params.values():
+        assert "<" not in desc
+        assert ">" not in desc

@@ -1,0 +1,11 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-9.0.3, pluggy-1.6.0
+rootdir: C:\Users\tomhe\Documents\flipjump-docs\.claude\worktrees\happy-diffie-4e4fe8
+configfile: pyproject.toml
+collected 76 items
+
+tests\test_extractor\test_doc_attach.py ................................ [ 42%]
+....................                                                     [ 68%]
+tests\test_extractor\test_renderer.py ...................sssss           [100%]
+
+======================== 71 passed, 5 skipped in 0.50s ========================
