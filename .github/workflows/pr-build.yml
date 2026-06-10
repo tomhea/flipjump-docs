@@ -73,14 +73,21 @@ jobs:
           cache: pip
           cache-dependency-path: docs/requirements.txt
 
+      # Sphinx and its dependencies require Python >=3.11 (sphinx 9.x).
+      # The Sphinx build runs only on 3.12 (matching deploy.yml). Unit tests
+      # run on all matrix versions so the fj_stl_extract package is validated
+      # against the full 3.10-3.13 range.
+      - name: Install Sphinx deps
+        if: matrix.python-version == '3.12'
+        run: pip install -r docs/requirements.txt
+
       # `-e .[dev]` pulls pytest + pyyaml from pyproject.toml so dev
       # versions are pinned in one place instead of duplicated here.
-      - name: Install deps
-        run: |
-          pip install -r docs/requirements.txt
-          pip install -e ".[dev]"
+      - name: Install dev deps
+        run: pip install -e ".[dev]"
 
       - name: Build Sphinx site (-W via Makefile default)
+        if: matrix.python-version == '3.12'
         run: cd docs && make html
 
       - name: Run pytest
@@ -93,3 +100,5 @@ jobs:
           name: html-preview
           path: docs/_build/html/
           retention-days: 7
+</content>
+</invoke>
