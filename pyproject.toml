@@ -7,6 +7,9 @@ name = "flipjump-docs-tooling"
 version = "1.7"
 description = "Tooling for building the FlipJump documentation site"
 requires-python = ">=3.10,<3.15"
+dependencies = [
+    "jinja2>=3.1",
+]
 
 [project.optional-dependencies]
 dev = [
