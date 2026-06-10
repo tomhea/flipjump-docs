@@ -78,7 +78,7 @@ jobs:
       # run on all matrix versions so the fj_stl_extract package is validated
       # against the full 3.10-3.13 range.
       - name: Install Sphinx deps
-        if: matrix.python-version == '3.12'
+        if: ${{ matrix.python-version == '3.12' }}
         run: pip install -r docs/requirements.txt
 
       # `-e .[dev]` pulls pytest + pyyaml from pyproject.toml so dev
@@ -87,14 +87,14 @@ jobs:
         run: pip install -e ".[dev]"
 
       - name: Build Sphinx site (-W via Makefile default)
-        if: matrix.python-version == '3.12'
+        if: ${{ matrix.python-version == '3.12' }}
         run: cd docs && make html
 
       - name: Run pytest
         run: pytest tests/ -v
 
       - name: Upload HTML preview artifact
-        if: matrix.python-version == '3.12'
+        if: ${{ matrix.python-version == '3.12' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: html-preview
