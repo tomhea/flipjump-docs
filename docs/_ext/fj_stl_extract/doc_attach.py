@@ -637,6 +637,22 @@ _DIRECTIVE_RE = re.compile(
 )
 
 
+def _esc(text: str) -> str:
+    """Escape HTML-significant characters in upstream-sourced text.
+
+    MyST-Parser passes raw HTML through to the rendered output by default.
+    Escaping < > & at the extraction boundary prevents doc comments in
+    untrusted upstream .fj source files from injecting live HTML tags
+    (stored XSS) into the generated documentation pages.
+
+    This is safe to apply to all extracted text: the pipeline's own
+    markup uses only backticks and `[](…)` Markdown syntax — never raw
+    angle brackets — so escaping them in source content doesn't break
+    any existing rendering.
+    """
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def _mark_directives(text: str) -> str:
     """Mark `wflip` / `pad` / `reserve` / `segment` mentions for
     later replacement by the renderer with a cross-page link.
@@ -741,11 +757,11 @@ def _extract_fields(doc_lines: list[str]) -> DocInfo:
         # Doc tags first (most specific).
         m = _REQUIRES_RE.match(body)
         if m:
-            info.requires.append(m.group(1))
+            info.requires.append(_esc(m.group(1)))
             continue
         m = _OUTPUT_PARAM_RE.match(body)
         if m:
-            info.output_params[m.group(1)] = m.group(2)
+            info.output_params[m.group(1)] = _esc(m.group(2))
             continue
 
         # Longest complexity forms before short ones.
@@ -844,7 +860,9 @@ def _extract_fields(doc_lines: list[str]) -> DocInfo:
         # prose with per-token inline-code instead.
         stripped_left = part.lstrip(" ")
         leading = part[: len(part) - len(stripped_left)]
-        content = stripped_left.rstrip()
+        # Escape HTML-significant characters BEFORE any Markdown transformation.
+        # MyST passes raw HTML through; upstream source is untrusted.
+        content = _esc(stripped_left.rstrip())
         if len(leading) >= 2 and not _PROSE_LINE_RE.search(content):
             transformed = leading + "`" + content + "`"
         else:

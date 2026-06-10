@@ -39,6 +39,7 @@ from pathlib import Path
 import jinja2
 
 from .dep_graph import macro_key
+from .doc_attach import _esc as _html_esc
 from .pipeline import ExtractedFile, StlIndex
 from .parser import MacroNode
 
@@ -605,7 +606,12 @@ def _namespace_index_context(*, ns_path: str,
 
 def _extract_file_intro(source: str) -> str:
     """First contiguous `//` comment block at the top of source, with the
-    `// ` prefix stripped. Useful for a file-level intro blurb."""
+    `// ` prefix stripped. Useful for a file-level intro blurb.
+
+    The extracted text is HTML-escaped (< > &) before returning because
+    MyST-Parser passes raw HTML through to the rendered output by default,
+    and the source comments are untrusted upstream content.
+    """
     lines: list[str] = []
     for raw in source.splitlines():
         stripped = raw.strip()
@@ -618,7 +624,7 @@ def _extract_file_intro(source: str) -> str:
         body = stripped[2:]
         if body.startswith(" "):
             body = body[1:]
-        lines.append(body)
+        lines.append(_html_esc(body))
     return "\n".join(lines).strip()
 
 
