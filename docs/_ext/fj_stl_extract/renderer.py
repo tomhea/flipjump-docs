@@ -531,7 +531,7 @@ def _collect_namespace_dirs(index: StlIndex) -> dict[str, list[ExtractedFile]]:
 
 
 # Hand-authored prose for the three known namespace directories. The
-# user pointed at the README in https://github.com/tomhea/flip-jump/
+# user pointed at the README in https://github.com/tomhea/flipjump/
 # tree/main/flipjump/stl as the source for these blurbs.
 _NAMESPACE_INTROS: dict[str, str] = {
     "bit": (

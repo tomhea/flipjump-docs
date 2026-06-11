@@ -4,7 +4,7 @@
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/flipjump.flipjump?label=installs)](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump)
 [![Rating](https://img.shields.io/visual-studio-marketplace/r/flipjump.flipjump?label=rating)](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump&ssr=false#review-details)
 
-Syntax highlighting for the [FlipJump](https://github.com/tomhea/flip-jump)
+Syntax highlighting for the [FlipJump](https://github.com/tomhea/flipjump)
 assembly language — the one-instruction esoteric language. Opens `.fj` files
 with the exact token colours used by the [FlipJump IDE](https://fj.tomhe.app)
 and the [docs site](https://fjdocs.tomhe.app).

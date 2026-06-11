@@ -27,7 +27,7 @@ def {{ macro.name }}
 {%- if macro.exports_labels %} > {{ macro.exports_labels | join(", ") }}{% endif %} { ... }
 ```
 
-**Defined in** [{{ file_rel }}.fj]({{ file_link }}) — lines {{ macro.start_line }}–{{ macro.end_line }} ([view on GitHub](https://github.com/tomhea/flip-jump/blob/main/flipjump/stl/{{ file_rel }}.fj#L{{ macro.start_line }}-L{{ macro.end_line }})).
+**Defined in** [{{ file_rel }}.fj]({{ file_link }}) — lines {{ macro.start_line }}–{{ macro.end_line }} ([view on GitHub](https://github.com/tomhea/flipjump/blob/main/flipjump/stl/{{ file_rel }}.fj#L{{ macro.start_line }}-L{{ macro.end_line }})).
 
 {% if macro.doc.time_complexity or macro.doc.space_complexity -%}
 ## Complexity
@@ -95,7 +95,7 @@ This macro exposes labels into the caller's scope via `>`:
 ## Example uses
 
 {% for cs in callsites -%}
-- [`{{ cs.caller_fq }}`](https://github.com/tomhea/flip-jump/blob/main/flipjump/stl/{{ cs.file_rel }}.fj#L{{ cs.start_line }}-L{{ cs.end_line }}) in `{{ cs.file_rel }}.fj`
+- [`{{ cs.caller_fq }}`](https://github.com/tomhea/flipjump/blob/main/flipjump/stl/{{ cs.file_rel }}.fj#L{{ cs.start_line }}-L{{ cs.end_line }}) in `{{ cs.file_rel }}.fj`
 {% endfor %}
 {%- endif %}
 

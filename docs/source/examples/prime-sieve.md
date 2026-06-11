@@ -1,6 +1,6 @@
 # Prime Sieve
 
-[`programs/prime_sieve.fj`](https://github.com/tomhea/flip-jump/blob/main/programs/prime_sieve.fj) computes all primes up to a user-supplied N using the sieve of Eratosthenes, optimised to only test 6k±1 candidates.
+[`programs/prime_sieve.fj`](https://github.com/tomhea/flipjump/blob/main/programs/prime_sieve.fj) computes all primes up to a user-supplied N using the sieve of Eratosthenes, optimised to only test 6k±1 candidates.
 
 ## The shape
 

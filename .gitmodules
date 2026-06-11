@@ -1,4 +1,4 @@
 [submodule "vendor/flip-jump"]
 	path = vendor/flip-jump
-	url = https://github.com/tomhea/flip-jump.git
+	url = https://github.com/tomhea/flipjump.git
 	branch = main

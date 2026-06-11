@@ -5,17 +5,17 @@ you that make the esoteric-language community such a great, active, and evolving
 community.
 
 This repository is the source for **[fjdocs.tomhe.app](https://fjdocs.tomhe.app)** —
-the documentation site for the [FlipJump](https://github.com/tomhea/flip-jump)
+the documentation site for the [FlipJump](https://github.com/tomhea/flipjump)
 language — plus the editor integrations under [`editors/`](editors/) (the VS Code
 extension and the native JetBrains plugin).
 
 > Changes to the **language, standard library, compiler, or runtime** belong in
-> the upstream [tomhea/flip-jump](https://github.com/tomhea/flip-jump) repo, not
+> the upstream [tomhea/flip-jump](https://github.com/tomhea/flipjump) repo, not
 > here. This repo only documents them (the STL reference pages are auto-generated
 > from the pinned `flip-jump` submodule) and ships the editor tooling.
 
 Please don't use the issue tracker for support questions. Instead, use the
-[FlipJump Discussions](https://github.com/tomhea/flip-jump/discussions).
+[FlipJump Discussions](https://github.com/tomhea/flipjump/discussions).
 
 ## Ways to contribute
 

@@ -1,6 +1,6 @@
 # Quine
 
-A quine is a program that prints itself. [`programs/quine16.fj`](https://github.com/tomhea/flip-jump/blob/main/programs/quine16.fj) is the FlipJump quine — and it's a particularly interesting one because of how the language defines "self".
+A quine is a program that prints itself. [`programs/quine16.fj`](https://github.com/tomhea/flipjump/blob/main/programs/quine16.fj) is the FlipJump quine — and it's a particularly interesting one because of how the language defines "self".
 
 ## What "self" means here
 

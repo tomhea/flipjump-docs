@@ -34,5 +34,5 @@ investigate and fix. Once a fix is released we're happy to credit you, unless
 you prefer to remain anonymous.
 
 Vulnerabilities in the FlipJump **language, compiler, or standard library**
-belong upstream at [tomhea/flip-jump](https://github.com/tomhea/flip-jump) —
+belong upstream at [tomhea/flip-jump](https://github.com/tomhea/flipjump) —
 please report those there.
