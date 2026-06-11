@@ -4,7 +4,7 @@ Address expressions in FlipJump are evaluated at **assembly time**, not at runti
 
 ## Available operators
 
-The table below reflects the actual operators in the upstream assembler's [parser](https://github.com/tomhea/flip-jump/blob/main/flipjump/assembler/fj_parser.py). Unary `-` and `~` are NOT yet implemented (open as upstream issue #249).
+The table below reflects the actual operators in the upstream assembler's [parser](https://github.com/tomhea/flipjump/blob/main/flipjump/assembler/fj_parser.py). Unary `-` and `~` are NOT yet implemented (open as upstream issue #249).
 
 | Operator | Meaning | Example |
 |----------|---------|---------|

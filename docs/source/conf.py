@@ -139,7 +139,7 @@ html_theme_options = {
     "footer_icons": [
         {
             "name": "GitHub",
-            "url": "https://github.com/tomhea/flip-jump",
+            "url": "https://github.com/tomhea/flipjump",
             "html": "",
             "class": "fa-brands fa-github",
         },

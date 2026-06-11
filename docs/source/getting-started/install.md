@@ -23,10 +23,10 @@ You should see a version string like `1.4.0`.
 
 ## Optional: clone the repo for examples and tests
 
-The PyPI package gives you everything you need to assemble and run programs, but the upstream [`tomhea/flip-jump`](https://github.com/tomhea/flip-jump) repo also ships example programs, tests, and the source of the standard library that this documentation auto-generates.
+The PyPI package gives you everything you need to assemble and run programs, but the upstream [`tomhea/flip-jump`](https://github.com/tomhea/flipjump) repo also ships example programs, tests, and the source of the standard library that this documentation auto-generates.
 
 ```sh
-git clone https://github.com/tomhea/flip-jump.git
+git clone https://github.com/tomhea/flipjump.git
 ```
 
 ## Don't want to install anything?

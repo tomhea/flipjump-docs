@@ -1,6 +1,6 @@
 # Calculator
 
-[`programs/calc.fj`](https://github.com/tomhea/flip-jump/blob/main/programs/calc.fj) — an interactive REPL that parses two numbers and one operator from stdin, evaluates, and prints the result. Supports `+`, `-`, `*`, `/`, `%`, decimal or hexadecimal input.
+[`programs/calc.fj`](https://github.com/tomhea/flipjump/blob/main/programs/calc.fj) — an interactive REPL that parses two numbers and one operator from stdin, evaluates, and prints the result. Supports `+`, `-`, `*`, `/`, `%`, decimal or hexadecimal input.
 
 ```text
 > 12345 + 67890
@@ -30,7 +30,7 @@ loop:
     ;loop                  // back to the top
 ```
 
-[View on GitHub](https://github.com/tomhea/flip-jump/blob/main/programs/calc.fj).
+[View on GitHub](https://github.com/tomhea/flipjump/blob/main/programs/calc.fj).
 
 ## What it demonstrates
 

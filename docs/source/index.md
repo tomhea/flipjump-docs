@@ -60,7 +60,7 @@ The browser IDE, c2fj (C compiler), bf2fj (Brainfuck compiler).
 
 ## External links
 
-- The [upstream `flip-jump` repository](https://github.com/tomhea/flip-jump) for the language implementation, examples, and tests.
+- The [upstream `flip-jump` repository](https://github.com/tomhea/flipjump) for the language implementation, examples, and tests.
 - The [esolangs.org wiki entry](https://esolangs.org/wiki/FlipJump) for background and design commentary.
 
 ## IDE plugins

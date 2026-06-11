@@ -57,4 +57,4 @@ ret_addr: bit.vec w
 ## See also
 
 - [`stl.fcall`](../stl/ptrlib/fcall--2.md), [`stl.fret`](../stl/ptrlib/fret--1.md)
-- The upstream [`calc.fj`](https://github.com/tomhea/flip-jump/blob/main/programs/calc.fj) — a real REPL using these primitives.
+- The upstream [`calc.fj`](https://github.com/tomhea/flipjump/blob/main/programs/calc.fj) — a real REPL using these primitives.

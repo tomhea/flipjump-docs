@@ -350,7 +350,7 @@ def _build_meta_block(
             ),
             "applicationCategory": "DeveloperApplication",
             "operatingSystem": "Cross-platform",
-            "url": "https://github.com/tomhea/flip-jump",
+            "url": "https://github.com/tomhea/flipjump",
             "downloadUrl": "https://pypi.org/project/flipjump/",
             "author": {
                 "@type": "Person",
