@@ -22,10 +22,18 @@
       "match": "//.*$"
     },
     {
-      "comment": "Macro call: an identifier at the start of a logical line that is not a language word, followed by args / a comment / EOL. Char-for-char port of the IDE's Monarch regex (see docs/_ext/fj_stl_extract/pygments_lexer.py).",
-      "match": "(^[ \\t]*)((?!(?:def|ns|rep|pad|reserve|segment|wflip|dbit|dw|w)\\b)[A-Za-z_.][\\w.]*)(?=[ \\t]+[^;\\s/]|[ \\t]*(?://|$))",
+      "comment": "Macro call: an identifier at the start of a logical line that is not a language word, followed by args / a comment / EOL. The name may carry leading dots (namespace-relative: .zero, ..foo) and single dots between segments (.a.b) — but never consecutive dots after the first segment, and a lone dot is not a call. See docs/_ext/fj_stl_extract/pygments_lexer.py.",
+      "match": "(^[ \\t]*)((?!(?:def|ns|rep|pad|reserve|segment|wflip|dbit|dw|w)\\b)\\.*[A-Za-z_]\\w*(?:\\.[A-Za-z_]\\w*)*)(?=[ \\t]+[^;\\s/]|[ \\t]*(?://|$))",
       "captures": {
         "2": { "name": "entity.name.function.call.flipjump" }
+      }
+    },
+    {
+      "comment": "Macro call after a rep(...) clause: the closing paren then the macro name, e.g. `rep(n, i) bit.exact_xor ...`. The rep header itself is coloured by the other rules; this anchors on the `)` (Oniguruma has no variable-length look-behind to reach back to `rep`).",
+      "match": "(\\))([ \\t]*)((?!(?:def|ns|rep|pad|reserve|segment|wflip|dbit|dw|w)\\b)\\.*[A-Za-z_]\\w*(?:\\.[A-Za-z_]\\w*)*)(?=[ \\t]+[^;\\s/]|[ \\t]*(?://|$))",
+      "captures": {
+        "1": { "name": "punctuation.flipjump" },
+        "3": { "name": "entity.name.function.call.flipjump" }
       }
     },
     {
@@ -74,8 +82,8 @@
       "name": "support.type.flipjump"
     },
     {
-      "comment": "Leading-dot identifiers (namespace navigation): .foo, ..tables.x",
-      "match": "\\.{1,2}[A-Za-z_][\\w.]*",
+      "comment": "Leading-dot identifiers (namespace navigation): .foo, ..tables.x, ...deep",
+      "match": "\\.+[A-Za-z_][\\w.]*",
       "name": "variable.other.member.flipjump"
     },
     {

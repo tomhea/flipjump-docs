@@ -36,7 +36,7 @@ A Claude Code / Agent SDK skill that teaches Claude to write, debug, and verify 
 :link: editor-highlighting
 :link-type: doc
 
-Highlight `.fj` files in VS Code and JetBrains IDEs with the same `fj-dark` colours as the IDE and these docs.
+Highlight `.fj` files in VS Code and JetBrains IDEs with the same `fj-dark` colours as the IDE and these docs, plus Ctrl+click go-to-definition for macros.
 
 **[VS Code Marketplace →](https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump)** · **[JetBrains Marketplace →](https://plugins.jetbrains.com/plugin/32134-flipjump)**
 :::

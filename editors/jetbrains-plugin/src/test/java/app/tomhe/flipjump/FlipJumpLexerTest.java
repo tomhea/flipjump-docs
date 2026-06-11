@@ -94,6 +94,32 @@ public class FlipJumpLexerTest {
         assertSame(FlipJumpTokens.IDENTIFIER, typeOf("; .tables.x", ".tables.x"));
     }
 
+    @Test public void leadingDotMacroCallAtLineStart() {
+        assertSame(FlipJumpTokens.MACRO_CALL, typeOf(".zero a b", ".zero"));
+        assertSame(FlipJumpTokens.MACRO_CALL, typeOf(".a.b arg", ".a.b"));
+        assertSame(FlipJumpTokens.MACRO_CALL, typeOf("..foo x", "..foo"));
+    }
+
+    @Test public void loneDotIsNotAMacroCall() {
+        assertFalse(anyTokenHasType(". arg", FlipJumpTokens.MACRO_CALL));
+    }
+
+    @Test public void consecutiveDotsAfterNameAreNotAMacroCall() {
+        assertFalse(anyTokenHasType(".a..b x", FlipJumpTokens.MACRO_CALL));
+        // It stays a plain member reference, not a call.
+        assertSame(FlipJumpTokens.IDENTIFIER, typeOf(".a..b x", ".a..b"));
+    }
+
+    @Test public void macroCallAfterRepClause() {
+        assertSame(FlipJumpTokens.MACRO_CALL, typeOf("rep(n, i) bit.exact_xor a, b", "bit.exact_xor"));
+        assertSame(FlipJumpTokens.MACRO_CALL, typeOf("rep(n, i) .zero a", ".zero"));
+        assertSame(FlipJumpTokens.MACRO_CALL, typeOf("rep((1<<n), i) foo a", "foo"));
+    }
+
+    @Test public void closeParenNotFollowedByNameIsNotAMacroCall() {
+        assertFalse(anyTokenHasType("wflip (a), b", FlipJumpTokens.MACRO_CALL));
+    }
+
     @Test public void numbers() {
         assertSame(FlipJumpTokens.NUMBER, typeOf("0xCAFE", "0xCAFE"));
         assertSame(FlipJumpTokens.NUMBER, typeOf("0b1010", "0b1010"));

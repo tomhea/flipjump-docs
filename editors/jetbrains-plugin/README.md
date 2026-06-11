@@ -17,6 +17,15 @@ The lexer is a hand-written port of the same ordered, line-aware rules as the
 shared TextMate grammar / docs-site Pygments lexer, and is verified against the
 identical golden cases in `src/test/java/.../FlipJumpLexerTest.java`.
 
+## Go to definition
+
+**Ctrl/Cmd+click** (or *Go to Declaration*, `Ctrl/Cmd+B`) on a macro name jumps
+to where it's declared. Clicking `xor` in `hex.xor a b c` finds the matching
+`def xor` across every `.fj` file in the project — one match jumps straight
+there, several open the usual navigation popup. The clicked segment is used on
+its own, so the `hex.` namespace prefix is ignored (a macro is declared
+`def xor` inside `ns hex`).
+
 ## Install
 
 From the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/32134-flipjump):
@@ -43,6 +52,11 @@ cd editors/jetbrains-plugin
 To try it in a sandbox IDE: `./gradlew runIde`.
 
 ## Publish
+
+CI builds and uploads the plugin `.zip` on every PR that touches the plugin (see
+[`jetbrains-plugin.yml`](../../.github/workflows/jetbrains-plugin.yml)), but
+**publishing a new version to the Marketplace is always manual.** Bump `version`
+in `build.gradle.kts` and add a `## [x.y.z]` CHANGELOG entry first, then:
 
 `./gradlew publishPlugin` to the [JetBrains Marketplace](https://plugins.jetbrains.com)
 (needs a `PUBLISH_TOKEN`); or upload the built zip manually to the Marketplace.

@@ -1,14 +1,18 @@
 {
   "name": "flipjump",
   "displayName": "FlipJump",
-  "description": "Syntax highlighting for the FlipJump assembly language (.fj), matching the FlipJump IDE and docs.",
-  "version": "0.1.0",
+  "description": "Syntax highlighting and go-to-definition for the FlipJump assembly language (.fj), matching the FlipJump IDE and docs.",
+  "version": "0.2.0",
   "publisher": "flipjump",
   "license": "BSD-2-Clause",
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.75.0"
   },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:flipjump"
+  ],
   "categories": [
     "Programming Languages"
   ],

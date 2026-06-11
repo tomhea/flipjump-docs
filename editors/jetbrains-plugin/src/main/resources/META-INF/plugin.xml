@@ -4,12 +4,14 @@
     <vendor url="https://fjdocs.tomhe.app">flipjump</vendor>
 
     <description><![CDATA[
-        Syntax highlighting for the <b>FlipJump</b> assembly language (<code>.fj</code>) —
-        the one-instruction esoteric language. Colours match the
+        Syntax highlighting and go-to-definition for the <b>FlipJump</b> assembly
+        language (<code>.fj</code>) — the one-instruction esoteric language. Colours
+        match the
         <a href="https://fj.tomhe.app">FlipJump IDE</a> and the
         <a href="https://fjdocs.tomhe.app">docs site</a> (the fj-dark palette),
         including distinct colours for macro definitions vs. macro calls, labels,
         constants, directives, types, numbers, strings, and comments.
+        Ctrl/Cmd+click a macro name to jump to its <code>def</code>.
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -24,6 +26,14 @@
         <lang.syntaxHighlighterFactory
             language="FlipJump"
             implementationClass="app.tomhe.flipjump.FlipJumpSyntaxHighlighterFactory"/>
+        <!-- Flat PSI over the lexer tokens, so go-to-definition has navigable
+             leaves to jump to. -->
+        <lang.parserDefinition
+            language="FlipJump"
+            implementationClass="app.tomhe.flipjump.FlipJumpParserDefinition"/>
+        <!-- Ctrl/Cmd+click a macro name -> jump to its `def` declaration. -->
+        <gotoDeclarationHandler
+            implementation="app.tomhe.flipjump.FlipJumpGotoDeclarationHandler"/>
         <colorSettingsPage implementation="app.tomhe.flipjump.FlipJumpColorSettingsPage"/>
         <!-- Default fj-dark colours for the FLIPJUMP_* keys, so they apply out of
              the box without hard-coded TextAttributes (the deprecated route). -->

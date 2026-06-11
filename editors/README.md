@@ -57,6 +57,15 @@ separately — see [`jetbrains-plugin/README.md`](jetbrains-plugin/README.md).)
 
 ## Publish
 
+CI **builds** the plugin files automatically on every PR — the
+[JetBrains workflow](../.github/workflows/jetbrains-plugin.yml) runs
+`test buildPlugin` and uploads the plugin `.zip` as a downloadable artifact, and
+[`pr-build.yml`](../.github/workflows/pr-build.yml) re-syncs the grammar and
+verifies the committed `.vsix` still embeds the current sources. CI never
+**publishes**, though: pushing a new version to the online VS Code or JetBrains
+marketplace is always a manual maintainer step. To cut a release, bump the
+version + CHANGELOG, rebuild the artifact (above), then run one of:
+
 - **VS Code Marketplace:** `cd vscode && npx --yes @vscode/vsce publish` (needs an Azure DevOps PAT for the `flipjump` publisher).
 - **Open VSX (optional):** `npx --yes ovsx publish`.
-- **JetBrains plugin:** see [`jetbrains-plugin/README.md`](jetbrains-plugin/README.md).
+- **JetBrains plugin:** `cd jetbrains-plugin && ./gradlew publishPlugin` (needs a `PUBLISH_TOKEN`), or upload the built zip by hand — see [`jetbrains-plugin/README.md`](jetbrains-plugin/README.md).

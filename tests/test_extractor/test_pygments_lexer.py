@@ -188,6 +188,50 @@ def test_dotted_identifier_at_line_start_is_macro_call():
     assert out[0] == (Name.Function.Magic, "stl.startup")
 
 
+def test_leading_dot_macro_call_at_line_start():
+    # A namespace-relative call at line start: `.zero a b` -> macro call.
+    assert _kinds_with_text(".zero a b")[0] == (Name.Function.Magic, ".zero")
+    # Single dots between segments are allowed: `.a.b`.
+    assert _kinds_with_text(".a.b arg")[0] == (Name.Function.Magic, ".a.b")
+    # Multiple leading dots (go up several namespaces) are allowed: `..foo`.
+    assert _kinds_with_text("..foo x")[0] == (Name.Function.Magic, "..foo")
+
+
+def test_lone_dot_is_not_a_macro_call():
+    # A bare `.` (no name) must never be coloured as a macro call.
+    kinds = [tt for tt, _ in _kinds_with_text(". arg")]
+    assert Name.Function.Magic not in kinds
+
+
+def test_consecutive_dots_after_name_are_not_a_macro_call():
+    # `.a..b` has consecutive dots after the first segment: not a macro call.
+    # It stays a namespace-relative member reference (Name.Other).
+    out = _kinds_with_text(".a..b x")
+    kinds = [tt for tt, _ in out]
+    assert Name.Function.Magic not in kinds
+    assert any(tt is Name.Other and txt == ".a..b" for tt, txt in out)
+
+
+def test_macro_call_after_rep_clause():
+    # `rep(n, i) bit.exact_xor ...` — the call follows the rep header, so it is
+    # not at line start. It must still be coloured as a macro call.
+    out = _kinds_with_text("rep(n, i) bit.exact_xor a, b")
+    assert any(tt is Name.Function.Magic and txt == "bit.exact_xor" for tt, txt in out)
+    # Leading-dot calls work after rep too.
+    out = _kinds_with_text("rep(n, i) .zero a")
+    assert any(tt is Name.Function.Magic and txt == ".zero" for tt, txt in out)
+    # A nested paren in the rep count doesn't confuse the detection.
+    out = _kinds_with_text("rep((1<<n), i) foo a")
+    assert any(tt is Name.Function.Magic and txt == "foo" for tt, txt in out)
+
+
+def test_close_paren_not_followed_by_a_name_is_not_a_macro_call():
+    # `wflip (a), b` — the `)` is followed by `,`, not a name, so nothing is
+    # mis-coloured as a call.
+    kinds = [tt for tt, _ in _kinds_with_text("wflip (a), b")]
+    assert Name.Function.Magic not in kinds
+
+
 def test_line_continuation_is_consumed():
     # `def foo a, \<newline>b` should yield no NEWLINE / no backslash text;
     # the `\<newline>` is whitespace.

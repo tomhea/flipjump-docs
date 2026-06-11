@@ -1,4 +1,4 @@
-# Editor syntax highlighting — VS Code & JetBrains
+# Editor syntax highlighting & navigation — VS Code & JetBrains
 
 ```{button-link} https://marketplace.visualstudio.com/items?itemName=flipjump.flipjump
 :color: primary
@@ -18,9 +18,11 @@
 
 ## What it is
 
-Syntax highlighting for `.fj` files in [VS Code](https://code.visualstudio.com)
-and [JetBrains IDEs](https://www.jetbrains.com) (IntelliJ IDEA, PyCharm, CLion,
-WebStorm, …).
+Syntax highlighting **and jump-to-macro-definition** for `.fj` files in
+[VS Code](https://code.visualstudio.com) and
+[JetBrains IDEs](https://www.jetbrains.com) (IntelliJ IDEA, PyCharm, CLion,
+WebStorm, …). Ctrl+click a macro to jump straight to its `def` — see
+**Jump to macro definition** below.
 
 The classification is ported from the [FlipJump IDE](ide.md)'s Monaco tokenizer
 and kept in lock-step with [this site's Pygments lexer](../language/lexical.md)
@@ -32,6 +34,16 @@ orange, plus strings, numbers, and comments.
 For exact colours, **VS Code** uses a TextMate grammar + scoped colour rules, and
 **JetBrains** uses a native plugin with its own lexer (its built-in TextMate
 engine can't reproduce the per-token colours).
+
+## Jump to macro definition
+
+Both extensions navigate to a macro's definition. **Ctrl+click** (Cmd+click on
+macOS), **F12**, or *Go to Definition* / *Go to Declaration* on a macro name jumps
+to where it's declared — searching every `.fj` file in the project for the
+matching `def`. Clicking `xor` in `hex.xor a b c` finds `def xor`; one match jumps
+straight there, several open a peek/popup list. The clicked segment is used on its
+own, so the `hex.` namespace prefix is ignored (a macro is declared `def xor`
+inside `ns hex`, never `def hex.xor`).
 
 ## VS Code
 
