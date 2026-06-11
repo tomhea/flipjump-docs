@@ -61,6 +61,41 @@ export const fixtures = [
   { name: "dotted ident mid-line is plain", src: "; stl.startup", find: "stl.startup", expect: "variable.other.flipjump" },
   { name: "leading-dot ident mid-line", src: "; .tables.x", find: ".tables.x", expect: "variable.other.member.flipjump" },
 
+  // ---- leading-dot macro calls (line start) ----
+  { name: "leading-dot macro call", src: ".zero a b", find: ".zero", expect: "entity.name.function.call.flipjump" },
+  { name: "dotted leading-dot macro call", src: ".a.b arg", find: ".a.b", expect: "entity.name.function.call.flipjump" },
+  { name: "multi-leading-dot macro call", src: "..foo x", find: "..foo", expect: "entity.name.function.call.flipjump" },
+  {
+    name: "a lone dot is never a macro call",
+    src: ". arg",
+    check: (toks) => {
+      const anyCall = toks.some((t) => t.scopes.includes("entity.name.function.call.flipjump"));
+      return { ok: !anyCall, msg: `anyCall=${anyCall} toks=${JSON.stringify(toks.map((t) => t.text))}` };
+    },
+  },
+  {
+    name: "consecutive dots after a name are not a macro call",
+    src: ".a..b x",
+    check: (toks) => {
+      const call = toks.find((t) => t.scopes.includes("entity.name.function.call.flipjump"));
+      const member = toks.find((t) => t.text === ".a..b" && t.scopes.includes("variable.other.member.flipjump"));
+      return { ok: !call && !!member, msg: `call=${call ? JSON.stringify(call.text) : "none"} member=${!!member}` };
+    },
+  },
+
+  // ---- macro calls inside a rep(...) clause ----
+  { name: "macro call after rep clause", src: "rep(n, i) bit.exact_xor a, b", find: "bit.exact_xor", expect: "entity.name.function.call.flipjump" },
+  { name: "leading-dot macro call after rep clause", src: "rep(n, i) .zero a", find: ".zero", expect: "entity.name.function.call.flipjump" },
+  { name: "nested-paren rep count still finds the call", src: "rep((1<<n), i) foo a", find: "foo", expect: "entity.name.function.call.flipjump" },
+  {
+    name: "a close paren not followed by a name is not a macro call",
+    src: "wflip (a), b",
+    check: (toks) => {
+      const anyCall = toks.some((t) => t.scopes.includes("entity.name.function.call.flipjump"));
+      return { ok: !anyCall, msg: `anyCall=${anyCall}` };
+    },
+  },
+
   // ---- numbers ----
   { name: "hex number", src: "0xCAFE", find: "0xCAFE", expect: "constant.numeric.hex.flipjump" },
   { name: "binary number", src: "0b1010", find: "0b1010", expect: "constant.numeric.binary.flipjump" },

@@ -28,15 +28,18 @@ public final class FlipJumpLexer extends LexerBase {
     private static final Pattern STRING_DQ = Pattern.compile("\"([^\"\\\\]|\\\\.)*\"");
     private static final Pattern STRING_SQ = Pattern.compile("'([^'\\\\]|\\\\.)*'");
     private static final Pattern KEYWORD   = Pattern.compile("(?:def|ns|rep)\\b");
-    private static final Pattern LEADING_DOT = Pattern.compile("\\.{1,2}[A-Za-z_][\\w.]*");
+    private static final Pattern LEADING_DOT = Pattern.compile("\\.+[A-Za-z_][\\w.]*");
     private static final Pattern IDENT     = Pattern.compile("[A-Za-z_][\\w.]*");
     private static final Pattern HEX       = Pattern.compile("0[xX][0-9a-fA-F]+");
     private static final Pattern BIN       = Pattern.compile("0[bB][01]+");
     private static final Pattern INT       = Pattern.compile("\\d+");
     // Char-for-char port of the macro-call rule (negative-keyword lookahead +
-    // ident + trailing arg/comment/EOL lookahead). MULTILINE so `$` is EOL.
+    // name + trailing arg/comment/EOL lookahead). The name may carry leading
+    // dots (`.zero`, `..foo`) and single dots between segments (`.a.b`), but
+    // not consecutive dots after the first segment, and a lone `.` is not a
+    // call. MULTILINE so `$` is EOL.
     private static final Pattern MACRO_CALL = Pattern.compile(
-        "(?!(?:def|ns|rep|pad|reserve|segment|wflip|dbit|dw|w)\\b)[A-Za-z_.][\\w.]*"
+        "(?!(?:def|ns|rep|pad|reserve|segment|wflip|dbit|dw|w)\\b)\\.*[A-Za-z_]\\w*(?:\\.[A-Za-z_]\\w*)*"
             + "(?=[ \\t]+[^;\\s/]|[ \\t]*(?://|$))",
         Pattern.MULTILINE);
 
@@ -124,10 +127,17 @@ public final class FlipJumpLexer extends LexerBase {
             return;
         }
 
-        // Leading-dot identifier (namespace navigation): .foo / ..bar
+        // Leading-dot name (namespace navigation): .foo / ..bar / .a.b. At line
+        // start with macro-call context it's a macro call (e.g. `.zero a b`);
+        // otherwise a plain member reference.
         if (c == '.') {
             int m = match(LEADING_DOT, pos);
-            if (m > pos) { emit(FlipJumpTokens.IDENTIFIER, m); return; }
+            if (m > pos) {
+                if (isInMacroCallPosition(pos) && lookingAt(MACRO_CALL, pos)) {
+                    emit(FlipJumpTokens.MACRO_CALL, m); return;
+                }
+                emit(FlipJumpTokens.IDENTIFIER, m); return;
+            }
         }
 
         // Numbers.
@@ -146,7 +156,7 @@ public final class FlipJumpLexer extends LexerBase {
     private IElementType classifyIdent(int pos, int end, String w) {
         if (isPrecededByWord(pos, "def")) return FlipJumpTokens.MACRO_DEF;
         if (isPrecededByWord(pos, "ns"))  return FlipJumpTokens.NAMESPACE;
-        if (isAtLineStart(pos) && lookingAt(MACRO_CALL, pos)) return FlipJumpTokens.MACRO_CALL;
+        if (isInMacroCallPosition(pos) && lookingAt(MACRO_CALL, pos)) return FlipJumpTokens.MACRO_CALL;
         boolean bare = w.indexOf('.') < 0;          // constant/label LHS is dot-free
         if (bare && followedBy(end, '=')) return FlipJumpTokens.CONSTANT;
         if (bare && followedBy(end, ':')) return FlipJumpTokens.LABEL;
@@ -172,6 +182,17 @@ public final class FlipJumpLexer extends LexerBase {
         int i = pos;
         while (i > 0 && (ch(i - 1) == ' ' || ch(i - 1) == '\t')) i--;
         return i == 0 || ch(i - 1) == '\n';
+    }
+
+    /** A statement-leading position where a macro call may appear: the line
+     *  start, or just after a {@code )} — the close of a {@code rep(...)} clause,
+     *  so {@code rep(n, i) bit.exact_xor ...} colours the call. (In valid
+     *  FlipJump a {@code ) NAME args} sequence only arises after rep.) */
+    private boolean isInMacroCallPosition(int pos) {
+        if (isAtLineStart(pos)) return true;
+        int i = pos;
+        while (i > 0 && (ch(i - 1) == ' ' || ch(i - 1) == '\t')) i--;
+        return i > 0 && ch(i - 1) == ')';
     }
 
     /** True when {@code word} immediately precedes {@code pos} (whitespace-separated). */

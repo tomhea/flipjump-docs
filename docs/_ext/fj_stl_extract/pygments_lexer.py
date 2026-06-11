@@ -78,12 +78,25 @@ class FlipJumpLexer(RegexLexer):
             # An identifier at the START of a logical line, not one of
             # the language keywords/types, followed by either an args
             # list, a comment, or EOL, is coloured as a macro call.
-            # Mirrors the regex in CodeEditor.tsx exactly.
+            # The name may carry leading dots (namespace-relative: `.zero`,
+            # `..foo`) and single dots between segments (`.a.b`), but never
+            # consecutive dots after the first segment, and a lone `.` is
+            # never a call.
             (r"(^[ \t]*)"
              r"((?!(?:" + "|".join(_NON_MACRO_LEAD_WORDS) + r")\b)"
-             r"[A-Za-z_.][\w.]*)"
+             r"\.*[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)"
              r"(?=[ \t]+[^;\s/]|[ \t]*(?://|$))",
              bygroups(Whitespace, Name.Function.Magic)),
+
+            # ---- Macro call after a rep(...) clause ----
+            # `rep(n, i) bit.exact_xor ...` — the call follows the rep header,
+            # so it isn't at line start. Anchor on the closing paren; the rep
+            # header itself is coloured by the rules below.
+            (r"(\))([ \t]*)"
+             r"((?!(?:" + "|".join(_NON_MACRO_LEAD_WORDS) + r")\b)"
+             r"\.*[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)"
+             r"(?=[ \t]+[^;\s/]|[ \t]*(?://|$))",
+             bygroups(Punctuation, Whitespace, Name.Function.Magic)),
 
             (r"[ \t]+", Whitespace),
             (r"\n", Whitespace),
@@ -122,8 +135,8 @@ class FlipJumpLexer(RegexLexer):
              Keyword.Type),
 
             # ---- Identifiers ----
-            # Dotted prefixes (namespace navigation): `.foo`, `..tables.x`.
-            (r"\.{1,2}[A-Za-z_][\w.]*", Name.Other),
+            # Dotted prefixes (namespace navigation): `.foo`, `..tables.x`, `...deep`.
+            (r"\.+[A-Za-z_][\w.]*", Name.Other),
             # Bare or dotted identifiers (`stl.startup`, `bit`, `_local`).
             (r"[A-Za-z_][\w.]*", Name),
 

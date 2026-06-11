@@ -22,6 +22,15 @@ The grammar is a TextMate port of the FlipJump IDE's Monaco tokenizer, kept in
 lock-step with the docs site's Pygments lexer by an automated parity test, so
 code looks identical across the IDE, the docs, and your editor.
 
+## Go to definition
+
+**Ctrl+click** (Cmd+click on macOS), **F12**, or *Go to Definition* on a macro
+name jumps to where it's declared. Clicking `xor` in `hex.xor a b c` finds the
+matching `def xor` across every `.fj` file in your workspace — one match jumps
+straight there, several open a peek list. The clicked segment is used on its
+own, so the `hex.` namespace prefix is ignored (a macro is declared `def xor`
+inside `ns hex`).
+
 ## Colours
 
 The extension ships the exact `fj-dark` colours and applies them **only to
