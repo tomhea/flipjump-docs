@@ -52,8 +52,24 @@ value: hex.vec 4                          // declared below stl.loop
 
 `hex.input_dec_uint n, dst, error` reads ASCII `'0'`–`'9'` into the `n`-nibble `dst`, stopping at `'\n'` or `'\0'` (EOF); it jumps to `error` only on a byte that is neither a digit nor a terminator. `hex.input_dec_int` additionally accepts a leading `-`. Unlike `hex.print_dec_uint`, these readers use the hex lookup tables, so the program must run `stl.startup_and_init_all` (as the main example above does), not just `stl.startup`.
 
+**Several numbers on one line** — since flipjump 1.4.0 the readers above are thin wrappers around `hex.input_dec_uint_until` / `hex.input_dec_int_until`, which stop at the *first non-digit byte* (after the signed reader's optional leading `-`) and hand it back to you instead of treating it as an error:
+
+```fj
+hex.input_dec_uint_until 4, a, stop_byte  // reads "12 34" up to the space
+hex.input_dec_uint_until 4, b, stop_byte  // reads the second number
+// ...
+
+// declared below stl.loop:
+a:         hex.vec 4
+b:         hex.vec 4
+stop_byte: hex.vec 2
+```
+
+`stop_byte[:2]` receives the byte that ended the number (the space, comma, `'\n'`, …), so you decide what separators mean — ideal for parsing space-separated input.
+
 ## See also
 
 - [`hex.input_as_hex`](../stl/hex/input/input_as_hex--2.md)
 - [`hex.input_dec_uint`](../stl/hex/input/input_dec_uint--3.md), [`hex.input_dec_int`](../stl/hex/input/input_dec_int--3.md)
+- [`hex.input_dec_uint_until`](../stl/hex/input/input_dec_uint_until--3.md), [`hex.input_dec_int_until`](../stl/hex/input/input_dec_int_until--3.md)
 - [`hex.add`](../stl/hex/math/add--2.md), [`hex.print`](../stl/hex/output/print--1.md)

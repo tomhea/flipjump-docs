@@ -19,7 +19,7 @@ That puts a `fj` script on your `PATH`. Sanity check:
 fj --version
 ```
 
-You should see a version string like `1.3.0`.
+You should see a version string like `1.4.0`.
 
 ## Optional: clone the repo for examples and tests
 
