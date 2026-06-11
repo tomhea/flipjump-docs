@@ -21,3 +21,5 @@ quine
 | [Quine](quine.md) | 1031 | self-printing FlipJump binary (mostly commentary explaining how it works) |
 
 The upstream repo's [`programs/`](https://github.com/tomhea/flip-jump/tree/main/programs) directory has more — multi-file compilation tests, function-call demos, hex arithmetic stress tests. They double as the test corpus that proves a FlipJump release works.
+
+Since flipjump 1.4.0 there's also a [demonstration catalog](https://github.com/tomhea/flip-jump/tree/main/programs/catalog) of 1029 small, self-contained, fully-tested programs across 30 categories — arithmetic, strings, state machines, puzzles, simulations and more. It's the best place to find a short working program that does something close to what you're trying to write.

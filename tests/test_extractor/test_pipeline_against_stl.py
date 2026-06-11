@@ -140,6 +140,31 @@ def test_extractor_does_not_record_macros_with_empty_names(index):
         assert m.name, f"empty macro name in {m.namespace_path}"
 
 
+def test_every_doc_attach_override_key_matches_a_real_macro(index):
+    """Overrides are keyed by (fq_name, arity); a key that matches no
+    extracted macro is a silent no-op. This guards every override dict
+    against upstream renames / re-arities sneaking through a submodule
+    bump unnoticed (CR finding on the 1.4.0 bump)."""
+    from fj_stl_extract.doc_attach import (
+        _ASSUMES_OVERRIDES,
+        _DESCRIPTION_OVERRIDES,
+        _SPACE_COMPLEXITY_OVERRIDES,
+        _TIME_COMPLEXITY_OVERRIDES,
+    )
+    real_keys = {(m.fq_name, m.arity) for m in index.all_macros}
+    for dict_name, overrides in [
+        ("_DESCRIPTION_OVERRIDES", _DESCRIPTION_OVERRIDES),
+        ("_TIME_COMPLEXITY_OVERRIDES", _TIME_COMPLEXITY_OVERRIDES),
+        ("_SPACE_COMPLEXITY_OVERRIDES", _SPACE_COMPLEXITY_OVERRIDES),
+        ("_ASSUMES_OVERRIDES", _ASSUMES_OVERRIDES),
+    ]:
+        stale = sorted(k for k in overrides if k not in real_keys)
+        assert not stale, (
+            f"{dict_name} keys with no matching STL macro "
+            f"(renamed/re-aritied upstream?): {stale}"
+        )
+
+
 def test_extractor_attaches_doc_to_every_macro_object(index):
     for f in index.files:
         for m in f.file_node.macros:

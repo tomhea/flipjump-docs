@@ -289,6 +289,85 @@ _DESCRIPTION_OVERRIDES: dict[tuple[str, int], str] = {
         "program. Initialises everything needed for the standard library.\n\n"
         "`stack_bit_size` is the size of the global-stack (will hold "
         "this number of hexes / return-addresses).",
+
+    # ---------- flipjump 1.4.0 additions ----------
+
+    # hex.scmp/6 — the source doc's `a<b` / `a>b` get HTML-escaped
+    # before auto-backticking, which splits the entities into broken
+    # code spans (same issue the bit.cmp / hex.cmp overrides fix).
+    ("hex.scmp", 6):
+        "Three-way SIGNED compare (two's complement) on n-nibble hex "
+        "vectors: jumps to `lt` if `a[:n]<b[:n]`, `eq` if equal, `gt` "
+        "if `a[:n]>b[:n]`. `a`, `b` are not modified.\n\n"
+        "Method: flips the sign bit (MSB) of copies of `a`, `b`, then "
+        "unsigned-compares — this maps the signed range monotonically "
+        "onto the unsigned range, so it is correct over the whole "
+        "range with no subtraction (hence no overflow).",
+
+    # hex/input.fj `_until` primitives — the auto-backticker wraps
+    # hyphenated prose ("non-digit") and swallows trailing periods
+    # into code spans ("stop_byte[:2].").
+    ("hex.input_dec_uint_until", 3):
+        "`dst[:n]` = the unsigned decimal number read from input "
+        "(mod 16^n).\n\n"
+        "Reads ASCII `'0'`..`'9'` and STOPS at the first non-digit "
+        "byte, which is stored in `stop_byte[:2]`. The primitive "
+        "behind `hex.input_dec_uint`.",
+    ("hex.input_dec_int_until", 3):
+        "`dst[:n]` = the signed decimal number read from input (two's "
+        "complement, mod 16^n).\n\n"
+        "Reads an optional leading `'-'`, then ASCII `'0'`..`'9'`, and "
+        "STOPS at the first non-digit byte, which gets stored in "
+        "`stop_byte[:2]` (note that a leading `'+'` stops with "
+        "`dst=0`). The primitive behind `hex.input_dec_int`.",
+
+    # Indexed (nth) pointers — "index-th" / "dw-aligned" get wrongly
+    # backticked by the hyphen-token rule, and `*ptr` is left bare.
+    # The ptr_index override keeps the source's @Assumes line (it
+    # lives in the description, so an override would otherwise drop it).
+    ("hex.ptr_index", 3):
+        "`dst[:w/4] = ptr + index*2w` — the address of the index-th "
+        "dw-aligned op past `*ptr`.\n\n"
+        "`dst`, `ptr` are `hex[:w/4]`; `index` is a signed "
+        "`hex[:w/4]`. Works for negative `index` too.\n\n"
+        "@Assumes: `w` in {16, 32, 64, 128}.",
+    ("hex.read_nth_hex", 3):
+        "`dst = *(ptr + index*2w)` — read the index-th hex past "
+        "`*ptr`.\n\n"
+        "`dst` is a hex; `ptr` is a `hex[:w/4]`; `index` is a signed "
+        "`hex[:w/4]` (may be negative). `ptr`, `index` are preserved.",
+    ("hex.read_nth_byte", 3):
+        "`dst[:2] = *(ptr + index*2w)` — read the index-th byte past "
+        "`*ptr`.\n\n"
+        "`dst` is a `hex[:2]`; `ptr` is a `hex[:w/4]`; `index` is a "
+        "signed `hex[:w/4]` (may be negative). `ptr`, `index` are "
+        "preserved.",
+    ("hex.write_nth_hex", 3):
+        "`*(ptr + index*2w) = src` — write `src` into the index-th "
+        "hex past `*ptr`.\n\n"
+        "`src` is a hex; `ptr` is a `hex[:w/4]`; `index` is a signed "
+        "`hex[:w/4]` (may be negative). `ptr`, `index`, `src` are "
+        "preserved.",
+    ("hex.write_nth_byte", 3):
+        "`*(ptr + index*2w)[:2] = src[:2]` — write the index-th byte "
+        "past `*ptr`.\n\n"
+        "`src` is a `hex[:2]`; `ptr` is a `hex[:w/4]`; `index` is a "
+        "signed `hex[:w/4]` (may be negative). `ptr`, `index`, `src` "
+        "are preserved.",
+
+    # hex/strings.fj line / byte-buffer helpers — trailing-period
+    # swallow ("len[:w/4].") in the auto-backticked descriptions.
+    ("hex.input_ptr_line", 2):
+        "Reads bytes from input into the pointed buffer, until a "
+        "`'\\n'` or a 0-byte (EOF); writes the byte count into "
+        "`len[:w/4]`.",
+    ("hex.print_ptr_text", 2):
+        "Prints `len[:w/4]` bytes from the pointed buffer.",
+    ("hex.print_ptr_line", 2):
+        "Prints bytes from the pointed buffer, until a `'\\n'` or a "
+        "0-byte (EOF); writes the byte count into `len[:w/4]`.\n\n"
+        "A terminating `'\\n'` is printed too (a terminating 0-byte "
+        "is not); either way `len` excludes it.",
 }
 
 
