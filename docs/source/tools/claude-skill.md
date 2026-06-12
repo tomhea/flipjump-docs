@@ -1,58 +1,49 @@
 # FlipJump Claude Skill
 
-```{button-link} ../_static/writing-flipjump-stl-code.zip
-:color: primary
-:expand:
-:tooltip: Download the skill bundle (SKILL.md + reference/)
+`flipjump-dev` is a [Claude skill](https://docs.claude.com/en/docs/claude-code/skills) that teaches Claude Code (and any Claude Agent SDK harness) to write, debug, assemble, and run FlipJump programs correctly the first time.
 
-⬇ Download `writing-flipjump-stl-code.zip`
-```
+It lives in its own repo, [`tomhea/skills`](https://github.com/tomhea/skills), and installs as a Claude Code plugin — so it stays up to date automatically instead of you re-downloading a bundle.
 
-## What it is
+## What it does
 
-A [Claude skill](https://docs.claude.com/en/docs/claude-code/skills) that teaches Claude Code (and any Claude Agent SDK harness) to write, debug, assemble, and run FlipJump programs correctly the first time.
+The skill is small and read-on-demand: it activates whenever you mention FlipJump, `.fj` files, the standard library, or any of its macros. Once active, Claude:
 
-The skill is small and read-on-demand: it activates whenever the user mentions FlipJump, `.fj` files, the standard library, or any of its macros. Once active, Claude orients to the one-instruction language, fetches macro signatures from this site rather than guessing them, and runs every program through the `fj` CLI before declaring it done.
+- **Routes to the docs** — fetches macro signatures, syntax, and recipes from this site rather than guessing them, instead of inventing macro names that don't exist.
+- **Knows the gotchas** — the memory model's `*dw` stride, the two byte encodings, init-macro dependencies, and why `addr;` IS the flip operation (not a no-op).
+- **Picks the right namespace** — when to reach for `bit.*` vs `hex.*`, and the bit-vs-hex size/speed tradeoff.
+- **Verifies before declaring done** — runs every program through the `fj` CLI and confirms it halts cleanly with byte-accurate output, instead of staring at the source and hoping.
 
-## What's in the bundle
-
-| File | Purpose |
-|---|---|
-| `SKILL.md` | Main entry. Orientation, the bit-vs-hex tradeoff, memory model, doc-comment vocabulary, idioms, the verification loop, and a routing table for the rest of this site. |
-| `reference/docs-map.md` | The full fast-routing map: every fjdocs section paired with its GitHub source path and a one-line "what does this answer" note. |
-| `reference/fj-tool.md` | Exact `fj` CLI usage — install, assemble + run, debug flags, plus a clearly-marked-optional section on the upstream pytest infrastructure. |
-
-Three files, ~420 lines total.
+It deliberately does *not* duplicate the macro catalogue or the cookbook — it points Claude at this site for the exact spelling of any macro, which is what this site is for.
 
 ## Install
 
-1. Download the [zip](../_static/writing-flipjump-stl-code.zip).
-2. Unzip into your Claude skills directory:
+The skill ships in the `flipjump` plugin on the `tomhe` marketplace. From inside Claude Code:
 
-   ```bash
-   # Linux / macOS
-   unzip writing-flipjump-stl-code.zip -d ~/.claude/skills/
+```text
+/plugin marketplace add tomhea/skills
+/plugin install flipjump@tomhe
+```
 
-   # Windows (PowerShell)
-   Expand-Archive writing-flipjump-stl-code.zip -DestinationPath $env:USERPROFILE\.claude\skills\
-   ```
+Then make sure the `fj` toolchain the skill drives is on your `PATH`:
 
-   The bundle's internal layout (`writing-flipjump-stl-code/SKILL.md` + `writing-flipjump-stl-code/reference/...`) puts everything in the right place automatically.
+```bash
+pip install flipjump
+```
 
-3. Restart Claude Code (or whichever Claude Agent SDK runtime you use). The skill becomes available the next time the user mentions FlipJump.
+Restart Claude Code if it was already running. The skill activates the next time you mention FlipJump.
 
-## What it covers (and what it deliberately doesn't)
+## Use it
 
-It covers the things this site can't teach a fresh Claude in 30 seconds: which init macro a program needs, why `addr;` IS the flip operation (not a no-op), how `bit`, `hex`, and "byte" all share the same address footprint, when to reach for the `bit.*` vs `hex.*` namespace, and the verification loop that catches subtle mistakes by running the code instead of staring at it.
+Just talk about FlipJump — the skill activates on its own. Open a `.fj` file, ask Claude to "write a FlipJump program that …", or mention an STL macro, and it kicks in. You can also point Claude at it explicitly by asking it to use the `flipjump-dev` skill.
 
-It does NOT duplicate macro signatures, the full namespace catalogue, or the cookbook recipes. Claude is told to fetch the relevant page from this site whenever it needs the exact spelling of a macro — that's what this site is for.
+From there Claude orients to the one-instruction language, fetches what it needs from this site, writes the program, and runs it through `fj` before telling you it's done.
 
 ## Source
 
-The skill bundle is hosted alongside this site at [`tomhea/flipjump-docs`](https://github.com/tomhea/flipjump-docs) — the zip lives at `docs/source/_static/writing-flipjump-stl-code.zip`. Bug reports and improvements welcome there.
+The skill is developed at [`tomhea/skills`](https://github.com/tomhea/skills) (MIT licensed). Bug reports and improvements are welcome there.
 
 ## Related
 
 - [Getting Started — Install](../getting-started/install.md) — install the `fj` toolchain the skill drives.
 - [Cookbook](../cookbook/index.md) — the recipes the skill points Claude at.
-- [How the STL Works](../reference/how-the-stl-works.md) — the conceptual model the skill compresses into three sentences.
+- [How the STL Works](../reference/how-the-stl-works.md) — the conceptual model the skill compresses into a few sentences.
