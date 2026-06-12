@@ -29,7 +29,7 @@ C-to-FlipJump compiler. Pipeline: C → RISC-V → FlipJump.
 
 A Claude Code / Agent SDK skill that teaches Claude to write, debug, and verify FlipJump programs end-to-end against the `fj` CLI.
 
-**[Download zip ↓](../_static/writing-flipjump-stl-code.zip)**
+`/plugin install flipjump@tomhe`
 :::
 
 :::{grid-item-card} 🎨 Editor syntax highlighting
