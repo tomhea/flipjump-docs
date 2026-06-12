@@ -103,7 +103,7 @@ DEFAULT_PAGE_DESCRIPTIONS = {
         "optimisation passes. Install with pip install bf2fj."
     ),
     "tools/claude-skill": (
-        "FlipJump Claude Skill — a Claude Code / Agent SDK skill bundle "
+        "FlipJump Claude Skill — a Claude Code / Agent SDK plugin "
         "that teaches Claude to write, debug, and verify FlipJump "
         "programs end-to-end against the fj CLI."
     ),
